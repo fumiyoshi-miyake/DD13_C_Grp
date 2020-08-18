@@ -1,24 +1,12 @@
-import os
 import sys
 import time
-import configparser
 import cv2
+#Setting.iniを使うソースはsetting.pyのimport後にimportする
+import setting
+import module
+from dispsim import *
 
-if os.path.exists('Setting.ini'):
-    config_ini = configparser.ConfigParser()
-    config_ini.read('Setting.ini', encoding='utf-8')
-
-    # 0:実機 1:シュミレーター
-    mode = int(config_ini['Common']['mode'])
-
-    #デバッグ出力　OFF:0　ON:1
-    debug = int(config_ini['Common']['debug'])
-else:
-    print('Setting.iniがありません')
-    mode = 1
-    debug = 0
-
-if mode == 0:
+if setting.mode == 0:
     # 実機
     import picamera
     import picamera.array
@@ -26,11 +14,26 @@ if mode == 0:
     # ローカルファイルインポート
     import raspicamera
 
+    #setting.pyで読み込んだiniファイルのデータを取得
+    config_ini = setting.config_ini
+    aa = int(config_ini['Common']['mode'])
+
+if setting.debug:
+  print('start dispsim ---')
+
+# ウィンドウ開く
+#実機
+if setting.mode == 0:
+    open_disp_machine()
+#シュミレーター   
+else:
+    open_disp()
+
 try:
     # 実機
-    if mode == 0:
+    if setting.mode == 0:
         # カメラ初期化
-        camera = raspicamera.InitCamera( debug )
+        camera = raspicamera.InitCamera( setting.debug )
 
         # カメラの画像をリアルタイムで取得するための処理(streamがメモリー上の画像データ)
         with picamera.array.PiRGBArray(camera) as stream:
@@ -67,19 +70,29 @@ try:
                 #######################################################################
                 ##########        サンプルコード終わり                          #######
                 #######################################################################
+                pass
+            pass
     #シュミレーター
     else:
-        while True:
-            #1ミリスリープ
+        while(True):
+            #0.1秒のスリープ
             time.sleep(.1)
             #時間表示
             print(time.time())
+            temp = module.readTemp()
+            if setting.debug:
+                print(temp)
+
+            pic = module.readPic()
+            if setting.debug:
+            #画像出力
+                dispsim(pic)
 
 #’Ctrl+C’を受け付けると終了
 except KeyboardInterrupt:
     print("done")
 
-    if mode == 0:
+    if setting.mode == 0:
         # 表示したウィンドウを閉じる
         cv2.destroyAllWindows()
 
