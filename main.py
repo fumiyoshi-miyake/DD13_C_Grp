@@ -4,6 +4,8 @@ import cv2
 #Setting.iniを使うソースはsetting.pyのimport後にimportする
 import setting
 import module
+import GetBodyTempData
+
 from dispsim import *
 
 if setting.mode == 0:
@@ -78,10 +80,16 @@ try:
             #0.1秒のスリープ
             time.sleep(.1)
             #時間表示
-            print(time.time())
+            #print(time.time())
+
+            #センサから温度データ取得
             temp = module.readTemp()
+
+            # 温度データから体温取得 第二引数は顔検出結果の有無。
+            # 顔検出機能OFFの場合はTrue固定。
+            bodyTemp = GetBodyTempData.getTempData(temp, True)
             if setting.debug:
-                print(temp)
+                print(bodyTemp)
 
             pic = module.readPic()
             if setting.debug:
