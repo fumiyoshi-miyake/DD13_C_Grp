@@ -11,7 +11,7 @@ if setting.mode == 1 :
     #サーモセンサーデータ数
     sensorCount = 64 
     #サーモセンサーのデータ配列
-    temperature = [0] * sensorCount
+    temperature = [[0]*8]*8
 
     #シュミレート用の画像データ 
     pic_list = ["picture0.jpg", "picture1.jpg", "picture2.jpg", "picture3.jpg", "picture4.jpg", "picture5.jpg", "picture6.jpg", "picture7.jpg", "picture8.jpg", "picture9.jpg"]
@@ -26,12 +26,12 @@ if setting.mode == 1 :
             with open(sensor_file) as f:
                 sensorData = [row for row in csv.reader(f)]
         
-            #特定の列の64行分のデータを取得
-            for row in range(64):
-                temperature[row] = float(sensorData[row][snsor_data_count])
+            #8×8のデータを取得
+            for row in range(8):
+                temperature[row] = sensorData[snsor_data_count * 8 + row]
 
-            #10個読み込んだ場合は先頭に戻す
-            if snsor_data_count == 9:
+            #8個読み込んだ場合は先頭に戻す
+            if snsor_data_count == 7:
                 snsor_data_count = 0
             else:
                 #次に読むターゲットデータを進める
