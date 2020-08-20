@@ -6,16 +6,12 @@ AVERAGE_COUNT_TH = 9
 MEASUREMENT_METHOD = 0
 
 # 体温のオフセット値
-OFFSET_TEMP = 3.6
+OFFSET_TEMP = 5.0
 
 # ------------------------------
 # 温度データ取得
 # ------------------------------
 def getTempData(inTemp, isDetFace):
-    # 人物検出していない場合は0（無効値）を返す
-    if isDetFace == False:
-       return 0
-
     outTemp = 0
     sumTemp = 0
     countTemp = 0
@@ -27,7 +23,11 @@ def getTempData(inTemp, isDetFace):
             if TEMPERATURE_TH <= inTemp[i][j]:
                 countTemp += 1
                 sumTemp += inTemp[i][j]
-          
+
+    # 人物検出していない場合は0（無効値）を返す
+    if isDetFace == False:
+       return 0
+
     # しきい値以上の温度データが得られたら、温度データを返却する
     if countTemp >= AVERAGE_COUNT_TH:
        # 平均値出力
