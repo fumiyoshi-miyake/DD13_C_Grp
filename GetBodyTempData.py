@@ -5,6 +5,9 @@ AVERAGE_COUNT_TH = 9
 # 測定手法（0:平均値, 1:最大値）
 MEASUREMENT_METHOD = 0
 
+# 体温のオフセット値
+OFFSET_TEMP = 3.6
+
 # ------------------------------
 # 温度データ取得
 # ------------------------------
@@ -18,10 +21,12 @@ def getTempData(inTemp, isDetFace):
     countTemp = 0
 
     # センサ解像度分ループ
-    for i in range(64):
-       if TEMPERATURE_TH <= inTemp[i]:
-          countTemp += 1
-          sumTemp += inTemp[i]
+    for i in range(8):
+        for j in range(8):
+            inTemp[i][j] += OFFSET_TEMP
+            if TEMPERATURE_TH <= inTemp[i][j]:
+                countTemp += 1
+                sumTemp += inTemp[i][j]
           
     # しきい値以上の温度データが得られたら、温度データを返却する
     if countTemp >= AVERAGE_COUNT_TH:
