@@ -3,37 +3,34 @@ import time
 import cv2
 #Setting.iniを使うソースはsetting.pyのimport後にimportする
 import setting
-import module
 from dispsim import *
 
+# 実機
 if setting.mode == 0:
-    # 実機
     import picamera
     import picamera.array
+    import adafruit_amg88xx
 
     # ローカルファイルインポート
     import raspicamera
+    import amg88sensor
 
-    #setting.pyで読み込んだiniファイルのデータを取得
-    config_ini = setting.config_ini
-    aa = int(config_ini['Common']['mode'])
-
-if setting.debug:
-  print('start dispsim ---')
-
-# ウィンドウ開く
-#実機
-if setting.mode == 0:
-    open_disp_machine()
-#シュミレーター   
+#シュミレーター
 else:
-    open_disp()
+    # ローカルファイルインポート
+    import module
 
 try:
     # 実機
     if setting.mode == 0:
+        # センサ初期化
+        sensor = amg88sensor.InitSensor( setting.debug )
+
         # カメラ初期化
         camera = raspicamera.InitCamera( setting.debug )
+
+        # ウィンドウ開く
+        open_disp_machine()
 
         # カメラの画像をリアルタイムで取得するための処理(streamがメモリー上の画像データ)
         with picamera.array.PiRGBArray(camera) as stream:
@@ -41,8 +38,16 @@ try:
                 #######################################################################
                 ##########        顔検出と画像表示のサンプルコード              #######
                 #######################################################################
+                # センサデータ取得
+                sensordata = sensor.pixels
+                #if setting.debug:
+                #    # 8x8データ表示(2次元配列)
+                #    print('------ Thermo Data -------')
+                #    print(*sensordata, sep='\n')
+                #    print('--------------------------')
+
                 # カメラから映像を取得する（OpenCVへ渡すために、各ピクセルの色の並びをBGRの順番にする）
-                #camera.capture(stream, 'bgr', use_video_port=True)
+                camera.capture(stream, 'bgr', use_video_port=True)
 
                 # 顔検出の処理効率化のために、写真の情報量を落とす（モノクロにする）
                 #grayimg = cv2.cvtColor(stream.array, cv2.COLOR_BGR2GRAY)
@@ -62,18 +67,21 @@ try:
                 #cv2.imshow('camera', stream.array)
 
                 # カメラから読み込んだ映像を破棄する
-                #stream.seek(0)
-                #stream.truncate()
+                stream.seek(0)
+                stream.truncate()
 
                 #1ミリWait(スリープだと画像が表示されない)
-                #cv2.waitKey(1)
+                cv2.waitKey(1)
                 #######################################################################
                 ##########        サンプルコード終わり                          #######
                 #######################################################################
-                pass
-            pass
     #シュミレーター
     else:
+        print('start dispsim ---')
+
+        # ウィンドウ開く
+        open_disp()
+
         while(True):
             #0.1秒のスリープ
             time.sleep(.1)
