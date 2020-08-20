@@ -28,7 +28,9 @@ if setting.mode == 1 :
         
             #8×8のデータを取得
             for row in range(8):
-                temperature[row] = sensorData[snsor_data_count * 8 + row]
+                l_sf = sensorData[snsor_data_count * 8 + row]
+                l_sf_f = [float(s) for s in l_sf]
+                temperature[row] = l_sf_f
 
             #8個読み込んだ場合は先頭に戻す
             if snsor_data_count == 7:

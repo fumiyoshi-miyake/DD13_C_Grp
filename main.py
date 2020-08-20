@@ -3,7 +3,26 @@ import time
 import cv2
 #Setting.iniを使うソースはsetting.pyのimport後にimportする
 import setting
+import module
+import GetBodyTempData
+
 from dispsim import *
+
+# 枠色
+COLOR_NONE = [0, 0, 0]
+COLOR_OK   = [51, 255, 102]
+COLOR_NG   = [0, 0, 255]
+
+# センサー座標
+START_POS = (40, 40)
+END_POS = (440, 440)
+
+# 文字座標
+OK_NG_POS = (220, 30)
+TEMP_POS = (450, 430)
+
+#温度OK/NGしきい値
+
 
 # 実機
 if setting.mode == 0:
@@ -46,6 +65,13 @@ try:
                 #    print(*sensordata, sep='\n')
                 #    print('--------------------------')
 
+
+
+                # 温度データから体温取得 第二引数は顔検出結果の有無。
+                # 顔検出機能OFFの場合はTrue固定。
+                bodyTemp = GetBodyTempData.getTempData(sensordata, True)
+
+
                 # カメラから映像を取得する（OpenCVへ渡すために、各ピクセルの色の並びをBGRの順番にする）
                 camera.capture(stream, 'bgr', use_video_port=True)
 
@@ -65,6 +91,26 @@ try:
 
                 # 結果の画像を表示する
                 #cv2.imshow('camera', stream.array)
+
+                # 顔検出機能OFFの描画設定###############
+                if bodyTemp == 0:
+                    #計測不可表示
+                    color = COLOR_NONE
+                elif bodyTemp >= 35.5:
+                    #NG表示
+                    color = COLOR_NG
+                    cv2.putText(stream.array, 'NG', OK_NG_POS, cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, thickness=3)
+                    cv2.putText(stream.array, "{:.1f}".format(bodyTemp), TEMP_POS, cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, thickness=3)
+                else:
+                    #OK表示
+                    color = COLOR_OK
+                    cv2.putText(stream.array, 'OK', OK_NG_POS, cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, thickness=3)
+                    cv2.putText(stream.array, "{:.1f}".format(bodyTemp), TEMP_POS, cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, thickness=3)
+
+                cv2.rectangle(stream.array, START_POS, END_POS, color, thickness=3)            
+                ########################
+
+
 
                 # カメラから読み込んだ映像を破棄する
                 stream.seek(0)
@@ -86,12 +132,38 @@ try:
             #0.1秒のスリープ
             time.sleep(.1)
             #時間表示
-            print(time.time())
+            #print(time.time())
+
+            #センサから温度データ取得
             temp = module.readTemp()
+
+            # 温度データから体温取得 第二引数は顔検出結果の有無。
+            # 顔検出機能OFFの場合はTrue固定。
+            bodyTemp = GetBodyTempData.getTempData(temp, True)
             if setting.debug:
-                print(temp)
+                print(bodyTemp)
 
             pic = module.readPic()
+
+
+            # 顔検出機能OFFの描画設定###############
+            if bodyTemp == 0:
+                #計測不可表示
+                color = COLOR_NONE
+            elif bodyTemp >= 37.5:
+                #NG表示
+                color = COLOR_NG
+                cv2.putText(pic, 'NG', OK_NG_POS, cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, thickness=3)
+                cv2.putText(pic, "{:.1f}".format(bodyTemp), TEMP_POS, cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, thickness=3)
+            else:
+                #OK表示
+                color = COLOR_OK
+                cv2.putText(pic, 'OK', OK_NG_POS, cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, thickness=3)
+                cv2.putText(pic, "{:.1f}".format(bodyTemp), TEMP_POS, cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, thickness=3)
+
+            cv2.rectangle(pic, START_POS, END_POS, color, thickness=3)            
+            ########################
+            
             if setting.debug:
             #画像出力
                 dispsim(pic)
