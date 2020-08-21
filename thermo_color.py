@@ -21,7 +21,7 @@ def temp_to_bgr(min, max, temp):
 
   # 温度 → BGR変換
   if temp <= min:    # Blue
-    bgr = [255,0,0]
+    bgr = [255, 0, 0]
   elif temp < mid_cyan:
     mid = 255 * (temp - min) / (mid_cyan - min)
     bgr = [255, int(mid), 0]
@@ -35,9 +35,9 @@ def temp_to_bgr(min, max, temp):
     mid = 255 * (1 - (temp - mid_yellow) / (max - mid_yellow) )
     bgr = [0, int(mid), 255]
   elif temp >= max:  # Red
-    bgr = [0,0,255]
+    bgr = [0, 0, 255]
   else:  # White
-    bgr = [255,255,255]
+    bgr = [255, 255, 255]
     
   return bgr
 
@@ -51,8 +51,8 @@ def temp_to_bgr(min, max, temp):
 # Return : colorbar_array = カラーバー画像データ
 # ------------------------------
 def make_colorbar(min, max, width, height):
-  min *= 10
-  max *= 10
+  min = int(min*10)
+  max = int(max*10)
   temp_array = [[[0]*3 for x in range(width)] for i in range(max-min)]
 
   # 指定範囲(min〜max)のカラーバーを作成

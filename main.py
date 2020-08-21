@@ -8,6 +8,10 @@ import GetBodyTempData
 
 from dispsim import *
 
+from thermo_color import make_colorbar
+from thermo_color import make_thermograph
+from comp_img import comp_thermo
+
 # 枠色 BGR
 COLOR_NONE = [220, 245, 245]
 COLOR_WAIT = [255, 204, 0]
@@ -57,6 +61,12 @@ else:
     import module
 
 try:
+    # 実機/Sim 共通
+    # カラーバー画像作成
+    colorbar_img = make_colorbar(setting.colorbar_min, setting.colorbar_max,\
+                                 setting.colorbar_width, setting.colorbar_height)
+
+
     # 実機
     if setting.mode == 0:
         # センサ初期化
@@ -227,6 +237,11 @@ try:
             if setting.debug:
                 print(bodyTemp)
 
+            # サーモグラフィ画像作成
+            thermo_img = make_thermograph(temp, setting.colorbar_min, setting.colorbar_max,\
+            #thermo_img = make_thermograph(sensordata4, setting.colorbar_min, setting.colorbar_max,\
+                                            setting.thermo_width, setting.thermo_height)
+
             #温度データ読み取り
             pic = module.readPic()
 
@@ -318,6 +333,9 @@ try:
 
                 cv2.rectangle(pic, START_POS, END_POS, color, thickness=1)            
                 ########################
+
+            # サーモグラフィ画像合成
+            comp_thermo(pic, colorbar_img, thermo_img, setting.comp_ofst_x, setting.comp_ofst_y)
 
             # 画像出力
             dispsim(pic)
