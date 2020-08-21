@@ -14,12 +14,12 @@ COLOR_OK   = [51, 255, 102]
 COLOR_NG   = [0, 0, 255]
 
 # センサー座標
-START_POS = (40, 40)
-END_POS = (440, 440)
+START_POS = (160, 80)
+END_POS = (480, 400)
 
 # 文字座標
-OK_NG_POS = (220, 30)
-TEMP_POS = (450, 430)
+OK_NG_POS = (300, 70)
+TEMP_POS = (480, 390)
 
 #温度OK/NGしきい値
 
@@ -100,14 +100,14 @@ try:
                     #NG表示
                     color = COLOR_NG
                     cv2.putText(stream.array, 'NG', OK_NG_POS, cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, thickness=3)
-                    cv2.putText(stream.array, "{:.1f}".format(bodyTemp), TEMP_POS, cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, thickness=3)
+                    cv2.putText(stream.array, "{:.1f}".format(bodyTemp), TEMP_POS, cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, thickness=2)
                 else:
                     #OK表示
                     color = COLOR_OK
                     cv2.putText(stream.array, 'OK', OK_NG_POS, cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, thickness=3)
-                    cv2.putText(stream.array, "{:.1f}".format(bodyTemp), TEMP_POS, cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, thickness=3)
+                    cv2.putText(stream.array, "{:.1f}".format(bodyTemp), TEMP_POS, cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, thickness=2)
 
-                cv2.rectangle(stream.array, START_POS, END_POS, color, thickness=3)            
+                cv2.rectangle(stream.array, START_POS, END_POS, color, thickness=1)            
                 ########################
 
 
@@ -154,14 +154,14 @@ try:
                 #NG表示
                 color = COLOR_NG
                 cv2.putText(pic, 'NG', OK_NG_POS, cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, thickness=3)
-                cv2.putText(pic, "{:.1f}".format(bodyTemp), TEMP_POS, cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, thickness=3)
+                cv2.putText(pic, "{:.1f}".format(bodyTemp), TEMP_POS, cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, thickness=2)
             else:
                 #OK表示
                 color = COLOR_OK
                 cv2.putText(pic, 'OK', OK_NG_POS, cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, thickness=3)
-                cv2.putText(pic, "{:.1f}".format(bodyTemp), TEMP_POS, cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, thickness=3)
+                cv2.putText(pic, "{:.1f}".format(bodyTemp), TEMP_POS, cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, thickness=2)
 
-            cv2.rectangle(pic, START_POS, END_POS, color, thickness=3)            
+            cv2.rectangle(pic, START_POS, END_POS, color, thickness=1)            
             ########################
             
             if setting.debug:
