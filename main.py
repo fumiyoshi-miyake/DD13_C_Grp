@@ -8,8 +8,9 @@ import GetBodyTempData
 
 from dispsim import *
 
-# 枠色
-COLOR_NONE = [0, 0, 0]
+# 枠色 BGR
+COLOR_NONE = [220, 245, 245]
+COLOR_WAIT = [255, 204, 0]
 COLOR_OK   = [51, 255, 102]
 COLOR_NG   = [0, 0, 255]
 
@@ -18,7 +19,7 @@ START_POS = (160, 80)
 END_POS = (480, 400)
 
 # 文字座標
-OK_NG_POS = (300, 70)
+OK_NG_POS = (160, 70)
 TEMP_POS = (480, 390)
 
 #温度OK/NGしきい値
@@ -29,7 +30,16 @@ SCALE_FACTOR = 1.15
 MIN_NIGHBORS = 2
 MIN_SIZE = (80,80)
 
+# 体温データの平均回数
+AVERAGE_COUNT = 4
 
+
+
+
+# 初期化
+BodyTempArray = [0] * AVERAGE_COUNT
+BodyTempIndex = 0
+SeqCount = 0
 
 # 実機
 if setting.mode == 0:
@@ -59,7 +69,7 @@ try:
         open_disp_machine()
 
         #顔検出機能ON
-        if settin.face_detect:
+        if setting.face_detect:
             # 顔検出のための学習元データを読み込む
             face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
 
@@ -88,7 +98,7 @@ try:
                 camera.capture(stream, 'bgr', use_video_port=True)               
 
                 #顔検出機能ON
-                if settin.face_detect:
+                if setting.face_detect:
 
                     # 顔検出の処理効率化のために、写真の情報量を落とす（モノクロにする）
                     grayimg = cv2.cvtColor(stream.array, cv2.COLOR_BGR2GRAY)
@@ -104,35 +114,79 @@ try:
                             if bodyTemp == 0 or len(facerect) > 1:
                                 #計測不可表示
                                 color = COLOR_NONE
-                            elif bodyTemp >= JUDGE_TEMP:
-                                #NG表示
-                                color = COLOR_NG
-                                cv2.putText(stream.array, 'NG', (int(rect[0] + rect[2]/2 - 30),rect[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, thickness=3)    
-                                cv2.putText(stream.array, "{:.1f}".format(bodyTemp), (rect[0] + rect[2] + 10,rect[1] + rect[3]), cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, thickness=3)
-                                
+                                BodyTempIndex = 0
+                                SeqCount = 0
+
+                            elif SeqCount < AVERAGE_COUNT:
+	    	                 # 測定中表示
+                                color = COLOR_WAIT
+                                #cv2.putText(stream.array, 'wait...', (int(rect[0]),rect[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, thickness=2)        
+                                SeqCount += 1
+                                BodyTempArray[BodyTempIndex] = bodyTemp
+                                BodyTempIndex += 1
+                                if BodyTempIndex > AVERAGE_COUNT:
+                                    BodyTempIndex = 0
+		                 
                             else:
-                                #OK表示
-                                color = COLOR_OK
-                                cv2.putText(stream.array, 'OK', (int(rect[0] + rect[2]/2 - 30),rect[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, thickness=3)    
-                                cv2.putText(stream.array, "{:.1f}".format(bodyTemp), (rect[0] + rect[2] + 10,rect[1] + rect[3]), cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, thickness=3)
+                                BodyTempArray[BodyTempIndex] = bodyTemp
+                                BodyTempIndex += 1
+                                if BodyTempIndex > AVERAGE_COUNT:
+                                    BodyTempIndex = 0
+
+                                #体温の平均値算出
+                                bodyTempAve = sum(BodyTempArray) / AVERAGE_COUNT
+                                if bodyTempAve >= JUDGE_TEMP:
+                                    #NG表示
+                                    color = COLOR_NG
+                                    cv2.putText(stream.array, 'NG', (int(rect[0]),rect[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, thickness=3)    
+                                    cv2.putText(stream.array, "{:.1f}".format(bodyTempAve), (rect[0] + rect[2] + 10,rect[1] + rect[3]), cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, thickness=2)
                                 
-                            cv2.rectangle(stream.array, tuple(rect[0:2]), tuple(rect[0:2]+rect[2:4]), color, thickness=3)              
+                                else:
+                                    #OK表示
+                                    color = COLOR_OK
+                                    cv2.putText(stream.array, 'OK', (int(rect[0]),rect[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, thickness=3)    
+                                    cv2.putText(stream.array, "{:.1f}".format(bodyTempAve), (rect[0] + rect[2] + 10,rect[1] + rect[3]), cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, thickness=2)
+                                
+                        cv2.rectangle(stream.array, tuple(rect[0:2]), tuple(rect[0:2]+rect[2:4]), color, thickness=2)              
                 else:
+                # 顔検出機能OFFの描画設定###############
                     if bodyTemp == 0:
                         #計測不可表示
                         color = COLOR_NONE
-                    elif bodyTemp >= 35.5:
-                        #NG表示
-                        color = COLOR_NG
-                        cv2.putText(stream.array, 'NG', OK_NG_POS, cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, thickness=3)
-                        cv2.putText(stream.array, "{:.1f}".format(bodyTemp), TEMP_POS, cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, thickness=2)
+                        BodyTempIndex = 0
+                        SeqCount = 0
+                    elif SeqCount < AVERAGE_COUNT:
+                        # 測定中表示
+                        color = COLOR_WAIT
+                        #cv2.putText(stream.array, 'wait...', OK_NG_POS, cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, thickness=3)        
+                        SeqCount += 1
+                        BodyTempArray[BodyTempIndex] = bodyTemp
+                        BodyTempIndex += 1
+                        if BodyTempIndex > AVERAGE_COUNT:
+                            BodyTempIndex = 0
+
                     else:
-                        #OK表示
-                        color = COLOR_OK
-                        cv2.putText(stream.array, 'OK', OK_NG_POS, cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, thickness=3)
-                        cv2.putText(stream.array, "{:.1f}".format(bodyTemp), TEMP_POS, cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, thickness=2)
+                        #OK or NG表示
+                        BodyTempArray[BodyTempIndex] = bodyTemp
+                        BodyTempIndex += 1
+                        if BodyTempIndex > AVERAGE_COUNT:
+                            BodyTempIndex = 0
+
+                        #体温の平均値算出
+                        bodyTempAve = sum(BodyTempArray) / AVERAGE_COUNT
+                        if bodyTempAve >= JUDGE_TEMP:
+                            #NG表示
+                            color = COLOR_NG
+                            cv2.putText(stream.array, 'NG', OK_NG_POS, cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, thickness=3)
+                            cv2.putText(stream.array, "{:.1f}".format(bodyTempAve), TEMP_POS, cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, thickness=2)
+                        else:
+                            #OK表示
+                            color = COLOR_OK
+                            cv2.putText(stream.array, 'OK', OK_NG_POS, cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, thickness=3)
+                            cv2.putText(stream.array, "{:.1f}".format(bodyTempAve), TEMP_POS, cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, thickness=2)
 
                     cv2.rectangle(stream.array, START_POS, END_POS, color, thickness=1)            
+                ########################
 
                 # 結果の画像を表示する
                 dispsim(stream.array)
@@ -194,33 +248,73 @@ try:
                         if bodyTemp == 0 or len(facerect) > 1:
                             #計測不可表示
                             color = COLOR_NONE
-                        elif bodyTemp >= JUDGE_TEMP:
-                            #NG表示
-                            color = COLOR_NG
-                            cv2.putText(pic, 'NG', (int(rect[0] + rect[2]/2 - 30),rect[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, thickness=3)    
-                            cv2.putText(pic, "{:.1f}".format(bodyTemp), (rect[0] + rect[2] + 10,rect[1] + rect[3]), cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, thickness=3)
+                            BodyTempIndex = 0
+                            SeqCount = 0
+                        elif SeqCount < AVERAGE_COUNT:
+		             # 測定中表示
+                            color = COLOR_WAIT
+                            #cv2.putText(pic, 'wait...', (int(rect[0]),rect[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, thickness=3)        
+                            SeqCount += 1
+                            BodyTempArray[BodyTempIndex] = bodyTemp
+                            BodyTempIndex += 1
+                            if BodyTempIndex >= AVERAGE_COUNT:
+                                BodyTempIndex = 0
+		                 
                         else:
-                            #OK表示
-                            color = COLOR_OK
-                            cv2.putText(pic, 'OK', (int(rect[0] + rect[2]/2 - 30),rect[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, thickness=3)    
-                            cv2.putText(pic, "{:.1f}".format(bodyTemp), (rect[0] + rect[2] + 10,rect[1] + rect[3]), cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, thickness=3)
-                        
-                        cv2.rectangle(pic, tuple(rect[0:2]), tuple(rect[0:2]+rect[2:4]), color, thickness=3)
+                            BodyTempArray[BodyTempIndex] = bodyTemp
+                            BodyTempIndex += 1
+                            if BodyTempIndex >= AVERAGE_COUNT:
+                                BodyTempIndex = 0
+
+                            #体温の平均値算出
+                            bodyTempAve = sum(BodyTempArray) / AVERAGE_COUNT
+                            if bodyTempAve >= JUDGE_TEMP:
+                                #NG表示
+                                color = COLOR_NG
+                                cv2.putText(pic, 'NG', (int(rect[0]), rect[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, thickness=3)    
+                                cv2.putText(pic, "{:.1f}".format(bodyTempAve), (rect[0] + rect[2] + 10,rect[1] + rect[3]), cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, thickness=2)
+                            else:
+                                #OK表示
+                                color = COLOR_OK
+                                cv2.putText(pic, 'OK', (int(rect[0]),rect[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, thickness=3)    
+                                cv2.putText(pic, "{:.1f}".format(bodyTempAve), (rect[0] + rect[2] + 10,rect[1] + rect[3]), cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, thickness=2)
+
+                        cv2.rectangle(pic, tuple(rect[0:2]), tuple(rect[0:2]+rect[2:4]), color, thickness=2)
             else:
                 # 顔検出機能OFFの描画設定###############
                 if bodyTemp == 0:
                     #計測不可表示
                     color = COLOR_NONE
-                elif bodyTemp >= 37.5:
-                    #NG表示
-                    color = COLOR_NG
-                    cv2.putText(pic, 'NG', OK_NG_POS, cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, thickness=3)
-                    cv2.putText(pic, "{:.1f}".format(bodyTemp), TEMP_POS, cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, thickness=2)
+                    BodyTempIndex = 0
+                    SeqCount = 0
+                elif SeqCount < AVERAGE_COUNT:
+                    # 測定中表示
+                    color = COLOR_WAIT
+                    #cv2.putText(pic, 'wait...', OK_NG_POS, cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, thickness=3)        
+                    SeqCount += 1
+                    BodyTempArray[BodyTempIndex] = bodyTemp
+                    BodyTempIndex += 1
+                    if BodyTempIndex >= AVERAGE_COUNT:
+                        BodyTempIndex = 0
+
                 else:
-                    #OK表示
-                    color = COLOR_OK
-                    cv2.putText(pic, 'OK', OK_NG_POS, cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, thickness=3)
-                    cv2.putText(pic, "{:.1f}".format(bodyTemp), TEMP_POS, cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, thickness=2)
+                    BodyTempArray[BodyTempIndex] = bodyTemp
+                    BodyTempIndex += 1
+                    if BodyTempIndex >= AVERAGE_COUNT:
+                        BodyTempIndex = 0
+
+                    #体温の平均値算出
+                    bodyTempAve = sum(BodyTempArray) / AVERAGE_COUNT
+                    if bodyTempAve >= JUDGE_TEMP:
+                        #NG表示
+                        color = COLOR_NG
+                        cv2.putText(pic, 'NG', OK_NG_POS, cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, thickness=3)
+                        cv2.putText(pic, "{:.1f}".format(bodyTempAve), TEMP_POS, cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, thickness=2)
+                    else:
+                        #OK表示
+                        color = COLOR_OK
+                        cv2.putText(pic, 'OK', OK_NG_POS, cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, thickness=3)
+                        cv2.putText(pic, "{:.1f}".format(bodyTempAve), TEMP_POS, cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, thickness=2)
 
                 cv2.rectangle(pic, START_POS, END_POS, color, thickness=1)            
                 ########################
