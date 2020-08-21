@@ -17,6 +17,7 @@ COLOR_NONE = [220, 245, 245]
 COLOR_WAIT = [255, 204, 0]
 COLOR_OK   = [51, 255, 102]
 COLOR_NG   = [0, 0, 255]
+COLOR_FRAME = [0, 0, 0]
 
 # センサー座標
 START_POS = (160, 80)
@@ -158,6 +159,8 @@ try:
                                     cv2.putText(stream.array, "{:.1f}".format(bodyTempAve), (rect[0] + rect[2] + 10,rect[1] + rect[3]), cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, thickness=2)
                                 
                         cv2.rectangle(stream.array, tuple(rect[0:2]), tuple(rect[0:2]+rect[2:4]), color, thickness=2)              
+                        cv2.rectangle(stream.array, START_POS, END_POS, COLOR_FRAME, thickness=1)            
+
                 else:
                 # 顔検出機能OFFの描画設定###############
                     if bodyTemp == 0:
@@ -295,6 +298,8 @@ try:
                                 cv2.putText(pic, "{:.1f}".format(bodyTempAve), (rect[0] + rect[2] + 10,rect[1] + rect[3]), cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, thickness=2)
 
                         cv2.rectangle(pic, tuple(rect[0:2]), tuple(rect[0:2]+rect[2:4]), color, thickness=2)
+                        cv2.rectangle(pic, START_POS, END_POS, COLOR_FRAME, thickness=1)            
+
             else:
                 # 顔検出機能OFFの描画設定###############
                 if bodyTemp == 0:
