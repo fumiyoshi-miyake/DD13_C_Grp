@@ -1,7 +1,8 @@
 import os
 import configparser
 
-
+# 顔検知( OFF:0, ON:1 )
+face_detect = 1
 # サーモグラフィ画像サイズ, 正方形,
 thermo_height = 100
 thermo_width = thermo_height
