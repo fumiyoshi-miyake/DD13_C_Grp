@@ -130,17 +130,17 @@ try:
                             elif SeqCount < AVERAGE_COUNT:
 	    	                 # 測定中表示
                                 color = COLOR_WAIT
-                                #cv2.putText(stream.array, 'wait...', (int(rect[0]),rect[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, thickness=2)        
+                                cv2.putText(stream.array, 'wait...', (int(rect[0]),rect[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, thickness=2)        
                                 SeqCount += 1
                                 BodyTempArray[BodyTempIndex] = bodyTemp
                                 BodyTempIndex += 1
-                                if BodyTempIndex > AVERAGE_COUNT:
+                                if BodyTempIndex >= AVERAGE_COUNT:
                                     BodyTempIndex = 0
 		                 
                             else:
                                 BodyTempArray[BodyTempIndex] = bodyTemp
                                 BodyTempIndex += 1
-                                if BodyTempIndex > AVERAGE_COUNT:
+                                if BodyTempIndex >= AVERAGE_COUNT:
                                     BodyTempIndex = 0
 
                                 #体温の平均値算出
@@ -168,18 +168,18 @@ try:
                     elif SeqCount < AVERAGE_COUNT:
                         # 測定中表示
                         color = COLOR_WAIT
-                        #cv2.putText(stream.array, 'wait...', OK_NG_POS, cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, thickness=3)        
+                        cv2.putText(stream.array, 'wait...', OK_NG_POS, cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, thickness=3)        
                         SeqCount += 1
                         BodyTempArray[BodyTempIndex] = bodyTemp
                         BodyTempIndex += 1
-                        if BodyTempIndex > AVERAGE_COUNT:
+                        if BodyTempIndex >= AVERAGE_COUNT:
                             BodyTempIndex = 0
 
                     else:
                         #OK or NG表示
                         BodyTempArray[BodyTempIndex] = bodyTemp
                         BodyTempIndex += 1
-                        if BodyTempIndex > AVERAGE_COUNT:
+                        if BodyTempIndex >= AVERAGE_COUNT:
                             BodyTempIndex = 0
 
                         #体温の平均値算出
@@ -268,7 +268,7 @@ try:
                         elif SeqCount < AVERAGE_COUNT:
 		             # 測定中表示
                             color = COLOR_WAIT
-                            #cv2.putText(pic, 'wait...', (int(rect[0]),rect[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, thickness=3)        
+                            cv2.putText(pic, 'wait...', (int(rect[0]),rect[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, thickness=3)        
                             SeqCount += 1
                             BodyTempArray[BodyTempIndex] = bodyTemp
                             BodyTempIndex += 1
@@ -305,7 +305,7 @@ try:
                 elif SeqCount < AVERAGE_COUNT:
                     # 測定中表示
                     color = COLOR_WAIT
-                    #cv2.putText(pic, 'wait...', OK_NG_POS, cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, thickness=3)        
+                    cv2.putText(pic, 'wait...', OK_NG_POS, cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, thickness=3)        
                     SeqCount += 1
                     BodyTempArray[BodyTempIndex] = bodyTemp
                     BodyTempIndex += 1
