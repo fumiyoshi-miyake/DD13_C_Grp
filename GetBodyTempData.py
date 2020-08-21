@@ -3,7 +3,7 @@ TEMPERATURE_TH = 35.5
 # 温度測定判定で使用する温度しきい値以上のデータ数のしきい値
 AVERAGE_COUNT_TH = 9
 # 測定手法（0:平均値, 1:最大値）
-MEASUREMENT_METHOD = 0
+MEASUREMENT_METHOD = 1
 
 # 体温のオフセット値
 OFFSET_TEMP = 6.0
