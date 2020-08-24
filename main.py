@@ -87,17 +87,15 @@ try:
         # カメラの画像をリアルタイムで取得するための処理(streamがメモリー上の画像データ)
         with picamera.array.PiRGBArray(camera) as stream:
             while True:
-                #######################################################################
-                ##########        顔検出と画像表示のサンプルコード              #######
-                #######################################################################
+                # 時間計測開始
+                #t1 = time.time()
+
                 # センサデータ取得
                 sensordata = sensor.pixels
-                #if setting.debug:
-                #    # 8x8データ表示(2次元配列)
-                #    print('------ Thermo Data -------')
-                #    print(*sensordata, sep='\n')
-                #    print('--------------------------')
-
+                # 8x8データ表示(2次元配列)
+                #print('------ Thermo Data -------')
+                #print(*sensordata, sep='\n')
+                #print('--------------------------')
 
 
                 # 温度データから体温取得 第二引数は顔検出結果の有無。
@@ -159,7 +157,7 @@ try:
                                     cv2.putText(stream.array, "{:.1f}".format(bodyTempAve), (rect[0] + rect[2] + 10,rect[1] + rect[3]), cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, thickness=2)
                                 
                         cv2.rectangle(stream.array, tuple(rect[0:2]), tuple(rect[0:2]+rect[2:4]), color, thickness=2)              
-                        cv2.rectangle(stream.array, START_POS, END_POS, COLOR_FRAME, thickness=1)            
+                    cv2.rectangle(stream.array, START_POS, END_POS, COLOR_FRAME, thickness=1)            
 
                 else:
                 # 顔検出機能OFFの描画設定###############
@@ -201,18 +199,24 @@ try:
                     cv2.rectangle(stream.array, START_POS, END_POS, color, thickness=1)            
                 ########################
 
-                # 結果の画像を表示する
-                dispsim(stream.array)
+                # サーモグラフィ画像作成
+                thermo_img = make_thermograph(sensordata, setting.colorbar_min, setting.colorbar_max,\
+                                              setting.thermo_width, setting.thermo_height)
+
+                # サーモグラフィ画像合成 & 結果の画像を表示する
+                dispsim(comp_thermo(stream.array.copy(), colorbar_img, thermo_img, setting.comp_ofst_x, setting.comp_ofst_y))
 
                 # カメラから読み込んだ映像を破棄する
                 stream.seek(0)
                 stream.truncate()
 
-                #1ミリWait(スリープだと画像が表示されない)
+                #時間計測終了
+                #t2 = time.time()
+                #elapsed_time = t2 - t1
+                #print(f"経過時間：{elapsed_time}")
+
+                #キーボード入力1ms待ち(これないと画像表示されない)
                 cv2.waitKey(1)
-                #######################################################################
-                ##########        サンプルコード終わり                          #######
-                #######################################################################
     #シュミレーター
     else:
         print('start dispsim ---')

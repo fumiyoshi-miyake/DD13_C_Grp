@@ -1,8 +1,6 @@
 import os
 import configparser
 
-# 顔検知( OFF:0, ON:1 )
-face_detect = 1
 # サーモグラフィ画像サイズ, 正方形,
 thermo_height = 100
 thermo_width = thermo_height
@@ -14,7 +12,6 @@ colorbar_height = thermo_height
 # 合成位置オフセット
 comp_ofst_x = 20
 
-
 if os.path.exists('Setting.ini'):
     config_ini = configparser.ConfigParser()
     config_ini.read('Setting.ini', encoding='utf-8')
@@ -25,19 +22,24 @@ if os.path.exists('Setting.ini'):
     #デバッグ出力　OFF:0　ON:1
     debug = int(config_ini['Common']['debug'])
 
+    # 顔検知( OFF:0, ON:1 )
+    face_detect = int(config_ini['Common']['face_detect'])
+
     # カラーグラデーション最小最大値
     colorbar_min = float(config_ini['ThermoSetting']['colorbar_min'])
     colorbar_max = float(config_ini['ThermoSetting']['colorbar_max'])
 
     # 合成位置オフセット
     resolution_height = int(config_ini['CameraSetting']['resolution_height'])
-    comp_ofst_y = resolution_height - thermo_height - comp_ofst_x
-    
+    comp_ofst_y = resolution_height - thermo_height - comp_ofst_x - 20
+
 else:
     print('Setting.iniがありません')
     mode = 1
     debug = 0
 
+    # 顔検知( OFF:0, ON:1 )
+    face_detect = 0
 
     # カラーグラデーション最小最大値
     colorbar_min = 35.0
