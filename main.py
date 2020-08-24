@@ -204,7 +204,7 @@ try:
                                               setting.thermo_width, setting.thermo_height)
 
                 # サーモグラフィ画像合成 & 結果の画像を表示する
-                dispsim(comp_thermo(stream.array.copy(), colorbar_img, thermo_img, setting.comp_ofst_x, setting.comp_ofst_y))
+                disp_ret = dispsim(comp_thermo(stream.array.copy(), colorbar_img, thermo_img, setting.comp_ofst_x, setting.comp_ofst_y))
 
                 # カメラから読み込んだ映像を破棄する
                 stream.seek(0)
@@ -215,8 +215,12 @@ try:
                 #elapsed_time = t2 - t1
                 #print(f"経過時間：{elapsed_time}")
 
-                #キーボード入力1ms待ち(これないと画像表示されない)
-                cv2.waitKey(1)
+
+                #　出力失敗の場合または閉じるボタン押下の時は終了する
+                if disp_ret == False:
+                    # カメラ終了
+                    camera.close()
+                    exit()
     #シュミレーター
     else:
         print('start dispsim ---')
@@ -347,7 +351,11 @@ try:
             comp_thermo(pic, colorbar_img, thermo_img, setting.comp_ofst_x, setting.comp_ofst_y)
 
             # 画像出力
-            dispsim(pic)
+            disp_ret = dispsim(pic)
+
+            #　出力失敗の場合または閉じるボタン押下の時は終了する
+            if disp_ret == False:
+                exit()
 
 #’Ctrl+C’を受け付けると終了
 except KeyboardInterrupt:

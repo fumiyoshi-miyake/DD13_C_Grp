@@ -98,8 +98,14 @@ def dispsim(img):
 
   cv2.imshow(WIN_NAME, img)
 
-  
+  #キーボード入力1ms待ち(これないと画像表示されない)
   cv2.waitKey(1)  # 描画更新用 1msec
+
+  prop_val = cv2.getWindowProperty(WIN_NAME, cv2.WND_PROP_ASPECT_RATIO)
+  # 閉じるボタンが押された時の処理
+  if prop_val < 0:
+    cv2.destroyAllWindows()
+    return False
 
   return True
 
