@@ -1,8 +1,6 @@
 import sys
 import time
 import cv2
-from PIL import Image, ImageFont, ImageDraw
-import numpy as np
 #Setting.iniを使うソースはsetting.pyのimport後にimportする
 import setting
 import module
@@ -13,6 +11,7 @@ from dispsim import *
 from thermo_color import make_colorbar
 from thermo_color import make_thermograph
 from comp_img import comp_thermo
+from text_jp import putJapaneseText
 
 # 枠色 BGR
 COLOR_NONE = [220, 245, 245]
@@ -78,20 +77,6 @@ else:
     import module
 
 
-# 画像に日本語文字を入れる関数
-def putJapaneseText(img, message, pos, bgra):
-    #font_path = '/usr/share/fonts/opentype/ipafont-gothic/ipag.ttf'  # Windowsのフォントファイルへのパス
-    font_path = '/usr/share/fonts/opentype/ipaexfont-gothic/ipaexg.ttf'  # Windowsのフォントファイルへのパス
-    font_size = 30                                      # フォントサイズ
-    font = ImageFont.truetype(font_path, font_size)     # PILでフォントを定義
-    img = Image.fromarray(img)                          # cv2(NumPy)型の画像をPIL型に変換
-    draw = ImageDraw.Draw(img)                          # 描画用のDraw関数を用意
-
-    # テキストを描画（位置、文章、フォント、文字色（BGR+α）を指定）
-    draw.text(pos, message, font=font, fill=bgra)
-    img = np.array(img)                                 # PIL型の画像をcv2(NumPy)型に変換
-    return img                                          # 文字入りの画像をリターン
-
 try:
     # 実機/Sim 共通
     # カラーバー画像作成
@@ -140,7 +125,8 @@ try:
                     grayimg = cv2.cvtColor(stream.array, cv2.COLOR_BGR2GRAY)
 
                     # 顔検出を行う
-                    facerect = face_cascade.detectMultiScale(grayimg, scaleFactor=SCALE_FACTOR, minNeighbors=MIN_NIGHBORS, minSize=MIN_SIZE)
+                    facerect = face_cascade.detectMultiScale(grayimg, scaleFactor=SCALE_FACTOR, \
+                                                             minNeighbors=MIN_NIGHBORS, minSize=MIN_SIZE)
 
                     # 顔が１つ検出
                     if len(facerect) == 1:
@@ -364,7 +350,8 @@ try:
                 grayimg = cv2.cvtColor(pic, cv2.COLOR_BGR2GRAY)
 
                 # 顔検出を行う
-                facerect = face_cascade.detectMultiScale(grayimg, scaleFactor=SCALE_FACTOR, minNeighbors=MIN_NIGHBORS, minSize=MIN_SIZE)
+                facerect = face_cascade.detectMultiScale(grayimg, scaleFactor=SCALE_FACTOR,\
+                                                         minNeighbors=MIN_NIGHBORS, minSize=MIN_SIZE)
 
                 # 顔が検出された場合
                 if len(facerect) > 0:
