@@ -2,7 +2,7 @@ import os
 import configparser
 
 # サーモグラフィ画像サイズ, 正方形,
-thermo_height = 100
+thermo_height = 120
 thermo_width = thermo_height
 
 # カラーバー画像サイズ, 縦幅はサーモグラフィ画像に合わせる,
@@ -10,7 +10,7 @@ colorbar_width = 20
 colorbar_height = thermo_height
 
 # 合成位置オフセット
-comp_ofst_x = 20
+comp_ofst_x = 5
 
 if os.path.exists('Setting.ini'):
     config_ini = configparser.ConfigParser()
