@@ -56,6 +56,29 @@ AVERAGE_COUNT = 4
 
 
 
+#　顔サイズチェック
+def check_face_size(rect_2, rect_3, msgStr, msgColor, msgPos):
+  if rect_2 < 200 or rect_3 < 320:
+    bodyTemp = GetBodyTempData.getTempData2(sensordata, False, None) # センサ温度の補正
+    #msgStr = '顔をカメラに近づけてください'
+    #msgPos = (110, 44)
+    msgStr = '枠内に顔を合わせてください'
+    msgColor = (0, 0, 0, 0)
+    msgPos = (124, 44)
+  elif rect_2 > 400 or rect_3 > 420:
+    bodyTemp = GetBodyTempData.getTempData2(sensordata, False, None) # センサ温度の補正
+    msgStr = '枠内に顔を合わせてください'
+    msgColor = (0, 0, 0, 0)
+    msgPos = (124, 44)
+  else:
+    bodyTemp = GetBodyTempData.getTempData2(sensordata, True, rect) # 体温取得 ＆ センサ温度の補正
+    msgStr = '枠内に顔を合わせてください'
+    msgColor = (0, 0, 0, 0)
+    msgPos = (124, 44)
+
+  return
+
+
 # 初期化
 BodyTempArray = [0] * AVERAGE_COUNT
 BodyTempIndex = 0
@@ -132,27 +155,10 @@ try:
                     if len(facerect) == 1:
                         rect = facerect[0]
                         #　顔サイズチェック
-                        if rect[2] < 200 or rect[3] < 320:
-                            bodyTemp = GetBodyTempData.getTempData2(sensordata, False, None) # センサ温度の補正
-                            #msgStr = '顔をカメラに近づけてください'
-                            #msgPos = (110, 44)
-                            msgStr = '枠内に顔を合わせてください'
-                            msgColor = (0, 0, 0, 0)
-                            msgPos = (124, 44)
-                        elif rect[2] > 400 or rect[3] > 420:
-                            bodyTemp = GetBodyTempData.getTempData2(sensordata, False, None) # センサ温度の補正
-                            msgStr = '枠内に顔を合わせてください'
-                            msgColor = (0, 0, 0, 0)
-                            msgPos = (124, 44)
-                        else:
-                            bodyTemp = GetBodyTempData.getTempData2(sensordata, True, rect) # 体温取得 ＆ センサ温度の補正
-                            msgStr = '枠内に顔を合わせてください'
-                            msgColor = (0, 0, 0, 0)
-                            msgPos = (124, 44)
+                        check_face_size(rect[2], rect[3], msgStr, msgColor, msgPos)
 
                         #計測不可表示(顔をカメラに近づけてください又は顔をカメラから離してください)
                         if bodyTemp == 0:
-                            #color = COLOR_NONE
                             BodyTempIndex = 0
                             SeqCount = 0
                             #status文字列背景
@@ -163,11 +169,8 @@ try:
                             #status文字列背景
                             COLOR_TEXT_BACK = [255, 0, 0]
                             cv2.rectangle(stream.array, STATUS_START_POS, STATUS_END_POS, COLOR_TEXT_BACK, thickness=-1)
-                            #color = COLOR_WAIT
-                            #cv2.putText(stream.array, 'wait...', (int(rect[0]),rect[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, thickness=2)        
                             msgStr = '計測中...'
                             msgPos = (270, 44)
-                            #msgColor = (255, 204, 0, 0)
                             msgColor = (0, 0, 0, 0)
                             SeqCount += 1
                             BodyTempArray[BodyTempIndex] = bodyTemp
@@ -188,33 +191,25 @@ try:
                                 #status文字列背景
                                 COLOR_TEXT_BACK = [0, 0, 255]
                                 cv2.rectangle(stream.array, STATUS_START_POS, STATUS_END_POS, COLOR_TEXT_BACK, thickness=-1)
-                                #color = COLOR_NG
                                 color = COLOR_FRAME
-                                #cv2.putText(stream.array, 'NG', (int(rect[0]),rect[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, thickness=3)    
                                 msgStr = 'NG  体温異常'
                                 msgPos = (236, 44)
-                                #msgColor = (0, 0, 255, 0)
                                 msgColor = (0, 0, 0, 0)
-                                #cv2.putText(stream.array, "{:.1f}".format(bodyTempAve), (rect[0] + rect[2] + 10,rect[1] + rect[3]), cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, thickness=2)
-                                COLOR_TEXT_BACK = [0, 0, 255]
                                 cv2.rectangle(stream.array, TEMP_START_POS, TEMP_END_POS, COLOR_TEXT_BACK, thickness=-1)
-                                cv2.putText(stream.array, "{:.1f}".format(bodyTempAve), TEMP_POS, cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, thickness=2)
+                                cv2.putText(stream.array, "{:.1f}".format(bodyTempAve), TEMP_POS,\
+                                            cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, thickness=2)
                             else:
                                 #OK表示
                                 #status文字列背景
                                 COLOR_TEXT_BACK = [0, 255, 0]
                                 cv2.rectangle(stream.array, STATUS_START_POS, STATUS_END_POS, COLOR_TEXT_BACK, thickness=-1)
-                                #color = COLOR_OK
                                 color = COLOR_FRAME
-                                #cv2.putText(stream.array, 'OK', (int(rect[0]),rect[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, thickness=3)    
                                 msgStr = 'OK  体温正常'
-                                #msgColor = (51, 255, 102, 0)
                                 msgColor = (0, 0, 0, 0)
                                 msgPos = (236, 44)
-                                #cv2.putText(stream.array, "{:.1f}".format(bodyTempAve), (rect[0] + rect[2] + 10,rect[1] + rect[3]), cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, thickness=2)
-                                COLOR_TEXT_BACK = [0, 255, 0]
                                 cv2.rectangle(stream.array, TEMP_START_POS, TEMP_END_POS, COLOR_TEXT_BACK, thickness=-1)
-                                cv2.putText(stream.array, "{:.1f}".format(bodyTempAve), TEMP_POS, cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, thickness=2)
+                                cv2.putText(stream.array, "{:.1f}".format(bodyTempAve), TEMP_POS,\
+                                            cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, thickness=2)
                         #cv2.rectangle(stream.array, tuple(rect[0:2]), tuple(rect[0:2]+rect[2:4]), color, thickness=2)
                     # 顔が検出されなかった場合or複数検出された場合
                     else:
@@ -223,7 +218,6 @@ try:
                         #color = COLOR_NONE
                         BodyTempIndex = 0
                         SeqCount = 0
-                        #cv2.putText(stream.array, 'Match Positions', OK_NG_POS, cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, thickness=3)
                         msgStr = '枠内に顔を合わせてください'
                         msgColor = (0, 0, 0, 0)
                         msgPos = (124, 44)
@@ -246,7 +240,8 @@ try:
                     elif SeqCount < AVERAGE_COUNT:
                         # 測定中表示
                         color = COLOR_WAIT
-                        cv2.putText(stream.array, 'wait...', OK_NG_POS, cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, thickness=3)        
+                        cv2.putText(stream.array, 'wait...', OK_NG_POS,\
+                                    cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, thickness=3)        
                         SeqCount += 1
                         BodyTempArray[BodyTempIndex] = bodyTemp
                         BodyTempIndex += 1
@@ -265,13 +260,17 @@ try:
                         if bodyTempAve >= JUDGE_TEMP:
                             #NG表示
                             color = COLOR_NG
-                            cv2.putText(stream.array, 'NG', OK_NG_POS, cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, thickness=3)
-                            cv2.putText(stream.array, "{:.1f}".format(bodyTempAve), TEMP_POS, cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, thickness=2)
+                            cv2.putText(stream.array, 'NG', OK_NG_POS,\
+                                        cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, thickness=3)
+                            cv2.putText(stream.array, "{:.1f}".format(bodyTempAve), TEMP_POS,\
+                                        cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, thickness=2)
                         else:
                             #OK表示
                             color = COLOR_OK
-                            cv2.putText(stream.array, 'OK', OK_NG_POS, cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, thickness=3)
-                            cv2.putText(stream.array, "{:.1f}".format(bodyTempAve), TEMP_POS, cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, thickness=2)
+                            cv2.putText(stream.array, 'OK', OK_NG_POS,\
+                                        cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, thickness=3)
+                            cv2.putText(stream.array, "{:.1f}".format(bodyTempAve),TEMP_POS,\
+                                        cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, thickness=2)
 
                     cv2.rectangle(stream.array, START_POS, END_POS, color, thickness=1)            
                 ########################
@@ -336,8 +335,7 @@ try:
 
             # サーモグラフィ画像作成
             thermo_img = make_thermograph(temp, setting.colorbar_min, setting.colorbar_max,\
-            #thermo_img = make_thermograph(sensordata4, setting.colorbar_min, setting.colorbar_max,\
-                                            setting.thermo_width, setting.thermo_height)
+                                          setting.thermo_width, setting.thermo_height)
 
             #温度データ読み取り
             pic = module.readPic()
@@ -364,9 +362,10 @@ try:
                             BodyTempIndex = 0
                             SeqCount = 0
                         elif SeqCount < AVERAGE_COUNT:
-		             # 測定中表示
+                            # 測定中表示
                             color = COLOR_WAIT
-                            cv2.putText(pic, 'wait...', (int(rect[0]),rect[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, thickness=3)        
+                            cv2.putText(pic, 'wait...', (int(rect[0]),rect[1] - 10),\
+                                        cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, thickness=3)        
                             SeqCount += 1
                             BodyTempArray[BodyTempIndex] = bodyTemp
                             BodyTempIndex += 1
@@ -384,13 +383,19 @@ try:
                             if bodyTempAve >= JUDGE_TEMP:
                                 #NG表示
                                 color = COLOR_NG
-                                cv2.putText(pic, 'NG', (int(rect[0]), rect[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, thickness=3)    
-                                cv2.putText(pic, "{:.1f}".format(bodyTempAve), (rect[0] + rect[2] + 10,rect[1] + rect[3]), cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, thickness=2)
+                                cv2.putText(pic, 'NG', (int(rect[0]), rect[1] - 10),\
+                                            cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, thickness=3)    
+                                cv2.putText(pic, "{:.1f}".format(bodyTempAve),\
+                                           (rect[0] + rect[2] + 10,rect[1] + rect[3]),\
+                                           cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, thickness=2)
                             else:
                                 #OK表示
                                 color = COLOR_OK
-                                cv2.putText(pic, 'OK', (int(rect[0]),rect[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, thickness=3)    
-                                cv2.putText(pic, "{:.1f}".format(bodyTempAve), (rect[0] + rect[2] + 10,rect[1] + rect[3]), cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, thickness=2)
+                                cv2.putText(pic, 'OK', (int(rect[0]),rect[1] - 10),\
+                                            cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, thickness=3)    
+                                cv2.putText(pic, "{:.1f}".format(bodyTempAve),\
+                                           (rect[0] + rect[2] + 10,rect[1] + rect[3]),\
+                                           cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, thickness=2)
 
                         cv2.rectangle(pic, tuple(rect[0:2]), tuple(rect[0:2]+rect[2:4]), color, thickness=2)
                         cv2.rectangle(pic, START_POS, END_POS, COLOR_FRAME, thickness=1)            
@@ -424,12 +429,14 @@ try:
                         #NG表示
                         color = COLOR_NG
                         cv2.putText(pic, 'NG', OK_NG_POS, cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, thickness=3)
-                        cv2.putText(pic, "{:.1f}".format(bodyTempAve), TEMP_POS, cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, thickness=2)
+                        cv2.putText(pic, "{:.1f}".format(bodyTempAve), TEMP_POS,\
+                                    cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, thickness=2)
                     else:
                         #OK表示
                         color = COLOR_OK
                         cv2.putText(pic, 'OK', OK_NG_POS, cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, thickness=3)
-                        cv2.putText(pic, "{:.1f}".format(bodyTempAve), TEMP_POS, cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, thickness=2)
+                        cv2.putText(pic, "{:.1f}".format(bodyTempAve), TEMP_POS,\
+                                    cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, thickness=2)
 
                 cv2.rectangle(pic, START_POS, END_POS, color, thickness=1)            
                 ########################
