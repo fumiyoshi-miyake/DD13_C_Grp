@@ -18,14 +18,19 @@ COLOR_WAIT = [255, 204, 0]
 COLOR_OK   = [51, 255, 102]
 COLOR_NG   = [0, 0, 255]
 COLOR_FRAME = [0, 0, 0]
+COLOR_TEXT_BACK = [255, 255, 255]
 
 # センサー座標
 START_POS = (160, 80)
 END_POS = (480, 400)
 
+# ステータステキスト背景座標
+STATUS_START_POS = (160, 40)
+STATUS_END_POS = (480, 80)
+
 # 文字座標
-OK_NG_POS = (160, 70)
-TEMP_POS = (480, 390)
+OK_NG_POS = (160, 80)
+TEMP_POS = (480, 360)
 
 #温度OK/NGしきい値
 JUDGE_TEMP = 37.5
@@ -248,6 +253,8 @@ try:
             #温度データ読み取り
             pic = module.readPic()
 
+            #status文字列背景
+            cv2.rectangle(pic, STATUS_START_POS, STATUS_END_POS, COLOR_TEXT_BACK, thickness=-1)
 
             #顔検出機能ON
             if setting.face_detect:
@@ -336,7 +343,7 @@ try:
                         cv2.putText(pic, 'OK', OK_NG_POS, cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, thickness=3)
                         cv2.putText(pic, "{:.1f}".format(bodyTempAve), TEMP_POS, cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, thickness=2)
 
-                cv2.rectangle(pic, START_POS, END_POS, color, thickness=1)            
+                cv2.rectangle(pic, START_POS, END_POS, color, thickness=3)            
                 ########################
 
             # サーモグラフィ画像合成
