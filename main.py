@@ -29,12 +29,14 @@ END_POS = (480, 420)
 OK_NG_POS = (160, 70)
 TEMP_POS = (480, 390)
 
-#COLOR_TEXT_BACK = [255, 255, 255]
 # ステータステキスト背景座標
 #STATUS_START_POS = (160, 40)
 STATUS_START_POS = (102, 39)
 #STATUS_END_POS = (480, 80)
 STATUS_END_POS = (534, 79)
+
+# ステータステキスト文字色
+STATUS_TEXT_COLOR = (0, 0, 0, 0)
 
 # 温度テキスト背景座標
 #TEMP_START_POS = (480, 360)
@@ -146,8 +148,7 @@ try:
                 camera.capture(stream, 'bgr', use_video_port=True)
                 camera_img = stream.array.copy()
 
-                # ステータスメッセージ表示用初期値
-                msgColor = (0, 0, 0, 0)
+                # ステータスメッセージ表示位置初期値
                 msgPos = (124, 44)
 
                 #顔検出機能ON
@@ -173,12 +174,12 @@ try:
                         if bodyTemp == 0:
                             BodyTempIndex = 0
                             SeqCount = 0
-                            COLOR_TEXT_BACK = [255, 255, 255]  # status文字列背景色
+                            text_bg_color = [255, 255, 255]  # status文字列背景色
                         # 測定中表示
                         elif SeqCount < AVERAGE_COUNT:
-                            COLOR_TEXT_BACK = COLOR_WAIT  # status文字列背景色
+                            text_bg_color = COLOR_WAIT  # status文字列背景色
                             msgStr = '計測中...'
-                            msgPos = (270, 44)
+                            msgPos = (270, 44)  # ステータステキスト表示位置
                             SeqCount += 1
                             BodyTempArray[BodyTempIndex] = bodyTemp
                             BodyTempIndex += 1
@@ -195,17 +196,16 @@ try:
                             bodyTempAve = sum(BodyTempArray) / AVERAGE_COUNT
                             if bodyTempAve >= JUDGE_TEMP:
                                 msgStr = 'NG  体温異常'
-                                COLOR_TEXT_BACK = COLOR_NG  # status文字列背景色
+                                text_bg_color = COLOR_NG  # status文字列背景色
 
                             else:
                                 msgStr = 'OK  体温正常'
-                                COLOR_TEXT_BACK = COLOR_OK  # status文字列背景色
+                                text_bg_color = COLOR_OK  # status文字列背景色
 
-                            msgColor = (0, 0, 0, 0)
-                            msgPos = (236, 44)
+                            msgPos = (236, 44)  # ステータステキスト表示位置
 
                             # 体温描画
-                            draw_temp(camera_img, bodyTempAve, COLOR_TEXT_BACK)
+                            draw_temp(camera_img, bodyTempAve, text_bg_color)
 
                             
                     # 顔が検出されなかった場合or複数検出された場合
@@ -215,8 +215,8 @@ try:
                         BodyTempIndex = 0
                         SeqCount = 0
                         msgStr = '枠内に顔を合わせてください'
-                        msgPos = (124, 44)
-                        COLOR_TEXT_BACK = [255, 255, 255]  # status文字列背景色
+                        msgPos = (124, 44)  # ステータステキスト表示位置
+                        text_bg_color = [255, 255, 255]  # status文字列背景色
 
                 else:
                     # 顔検出機能OFFの描画設定###############
@@ -229,14 +229,14 @@ try:
 
                     if bodyTemp == 0:
                         #計測不可表示
-                        COLOR_TEXT_BACK = COLOR_NONE
+                        text_bg_color = COLOR_NONE
                         BodyTempIndex = 0
                         SeqCount = 0
                     elif SeqCount < AVERAGE_COUNT:
                         # 測定中表示
-                        COLOR_TEXT_BACK = COLOR_WAIT
+                        text_bg_color = COLOR_WAIT
                         msgStr = '計測中...'
-                        msgPos = (270, 44)
+                        msgPos = (270, 44)  # ステータステキスト表示位置
 
                         SeqCount += 1
                         BodyTempArray[BodyTempIndex] = bodyTemp
@@ -255,19 +255,18 @@ try:
                         bodyTempAve = sum(BodyTempArray) / AVERAGE_COUNT
                         if bodyTempAve >= JUDGE_TEMP:
                             msgStr = 'NG  体温異常'
-                            COLOR_TEXT_BACK = COLOR_NG  # status文字列背景色
+                            text_bg_color = COLOR_NG  # status文字列背景色
                         else:
                             msgStr = 'OK  体温正常'
-                            COLOR_TEXT_BACK = COLOR_OK  # status文字列背景色
+                            text_bg_color = COLOR_OK  # status文字列背景色
 
-                        msgColor = (0, 0, 0, 0)
-                        msgPos = (236, 44)
+                        msgPos = (236, 44)  # ステータステキスト表示位置
 
                         # 体温描画
-                        draw_temp(camera_img, bodyTempAve, COLOR_TEXT_BACK)
+                        draw_temp(camera_img, bodyTempAve, text_bg_color)
 
                 # status文字列背景描画
-                cv2.rectangle(camera_img, STATUS_START_POS, STATUS_END_POS, COLOR_TEXT_BACK, thickness=-1)
+                cv2.rectangle(camera_img, STATUS_START_POS, STATUS_END_POS, text_bg_color, thickness=-1)
                         
                 # センサ範囲矩形描画
                 cv2.rectangle(camera_img, START_POS, END_POS, COLOR_NONE, thickness=2)            
@@ -286,7 +285,7 @@ try:
 
                 #msg(日本語文字)合成
                 if msgStr != '':
-                    img = putJapaneseText(img, msgStr, msgPos, msgColor)
+                    img = putJapaneseText(img, msgStr, msgPos, STATUS_TEXT_COLOR)
 
                 # 結果の画像を表示する
                 disp_ret = dispsim(img)
@@ -338,8 +337,7 @@ try:
             #カメラ画像データ読み取り
             pic = module.readPic()
 
-            # ステータスメッセージ表示用初期値
-            msgColor = (0, 0, 0, 0)
+            # ステータスメッセージ表示位置初期値
             msgPos = (124, 44)
 
 
@@ -367,9 +365,9 @@ try:
                             SeqCount = 0
                         elif SeqCount < AVERAGE_COUNT:
                             # 測定中表示
-                            COLOR_TEXT_BACK = COLOR_WAIT  # status文字列背景色
+                            text_bg_color = COLOR_WAIT  # status文字列背景色
                             msgStr = '計測中...'
-                            msgPos = (270, 44)
+                            msgPos = (270, 44)  # ステータステキスト表示位置
                             SeqCount += 1
                             BodyTempArray[BodyTempIndex] = bodyTemp
                             BodyTempIndex += 1
@@ -387,18 +385,17 @@ try:
                             if bodyTempAve >= JUDGE_TEMP:
                                 #NG表示
                                 msgStr = 'NG  体温異常'
-                                COLOR_TEXT_BACK = COLOR_NG  # status文字列背景色
+                                text_bg_color = COLOR_NG  # status文字列背景色
                             else:
                                 msgStr = 'OK  体温正常'
-                                COLOR_TEXT_BACK = COLOR_OK  # status文字列背景色
+                                text_bg_color = COLOR_OK  # status文字列背景色
 
-                            msgColor = (0, 0, 0, 0)
-                            msgPos = (236, 44)
+                            msgPos = (236, 44)  # ステータステキスト表示位置
                             # 体温描画
-                            draw_temp(pic, bodyTempAve, COLOR_TEXT_BACK)
+                            draw_temp(pic, bodyTempAve, text_bg_color)
                             
                         cv2.rectangle(pic, tuple(rect[0:2]), tuple(rect[0:2]+rect[2:4]),\
-                                      COLOR_TEXT_BACK, thickness=2)
+                                      text_bg_color, thickness=2)  # 矩形色指定が文字背景色と同一になっている（要確認）
 
             else:
                 # 顔検出機能OFFの描画設定###############
@@ -412,9 +409,9 @@ try:
                     SeqCount = 0
                 elif SeqCount < AVERAGE_COUNT:
                     # 測定中表示
-                    COLOR_TEXT_BACK = COLOR_WAIT  # status文字列背景色
+                    text_bg_color = COLOR_WAIT  # status文字列背景色
                     msgStr = '計測中...'
-                    msgPos = (270, 44)
+                    msgPos = (270, 44)  # ステータステキスト表示位置
 
                     SeqCount += 1
                     BodyTempArray[BodyTempIndex] = bodyTemp
@@ -432,20 +429,19 @@ try:
                     bodyTempAve = sum(BodyTempArray) / AVERAGE_COUNT
                     if bodyTempAve >= JUDGE_TEMP:
                         msgStr = 'NG  体温異常'
-                        COLOR_TEXT_BACK = COLOR_NG  # status文字列背景色
+                        text_bg_color = COLOR_NG  # status文字列背景色
                     else:
                         msgStr = 'OK  体温正常'
-                        COLOR_TEXT_BACK = COLOR_OK  # status文字列背景色
+                        text_bg_color = COLOR_OK  # status文字列背景色
 
-                    msgColor = (0, 0, 0, 0)
-                    msgPos = (236, 44)
+                    msgPos = (236, 44)  # ステータステキスト表示位置
                     # 体温描画
-                    draw_temp(pic, bodyTempAve, COLOR_TEXT_BACK)
+                    draw_temp(pic, bodyTempAve, text_bg_color)
 
                 ########################
                 
             # status文字列背景描画
-            cv2.rectangle(pic, STATUS_START_POS, STATUS_END_POS, COLOR_TEXT_BACK, thickness=-1)
+            cv2.rectangle(pic, STATUS_START_POS, STATUS_END_POS, text_bg_color, thickness=-1)
                         
             # センサ範囲矩形描画
             cv2.rectangle(pic, START_POS, END_POS, COLOR_NONE, thickness=1)            
@@ -459,7 +455,7 @@ try:
 
             #msg(日本語文字)合成
             if msgStr != '':
-                img = putJapaneseText(img, msgStr, msgPos, msgColor)
+                img = putJapaneseText(img, msgStr, msgPos, STATUS_TEXT_COLOR)
 
 
             # 画像出力
