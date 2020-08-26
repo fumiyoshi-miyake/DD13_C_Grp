@@ -34,12 +34,14 @@ STATUS_END_POS = (480, 80)
 OK_NG_POS = (160, 80)
 TEMP_POS = (480, 360)
 
-#COLOR_TEXT_BACK = [255, 255, 255]
 # ステータステキスト背景座標
 #STATUS_START_POS = (160, 40)
 STATUS_START_POS = (102, 39)
 #STATUS_END_POS = (480, 80)
 STATUS_END_POS = (534, 79)
+
+# ステータステキスト文字色
+STATUS_TEXT_COLOR = (0, 0, 0, 0)
 
 # 温度テキスト背景座標
 #TEMP_START_POS = (480, 360)
@@ -61,27 +63,31 @@ AVERAGE_COUNT = 4
 
 
 
-#　顔サイズチェック
-def check_face_size(rect_2, rect_3, msgStr, msgColor, msgPos):
+# 顔サイズチェック
+# Input  : rect_2, rect_3
+# Return : bodyTemp
+def check_face_size(rect_2, rect_3):
   if rect_2 < 200 or rect_3 < 320:
     bodyTemp = GetBodyTempData.getTempData2(sensordata, False, None) # センサ温度の補正
-    #msgStr = '顔をカメラに近づけてください'
-    #msgPos = (110, 44)
-    msgStr = '枠内に顔を合わせてください'
-    msgColor = (0, 0, 0, 0)
-    msgPos = (124, 44)
   elif rect_2 > 400 or rect_3 > 420:
     bodyTemp = GetBodyTempData.getTempData2(sensordata, False, None) # センサ温度の補正
-    msgStr = '枠内に顔を合わせてください'
-    msgColor = (0, 0, 0, 0)
-    msgPos = (124, 44)
   else:
     bodyTemp = GetBodyTempData.getTempData2(sensordata, True, rect) # 体温取得 ＆ センサ温度の補正
-    msgStr = '枠内に顔を合わせてください'
-    msgColor = (0, 0, 0, 0)
-    msgPos = (124, 44)
+
+  return bodyTemp
+
+
+# 体温描画
+# Input : camera_img = カメラ画像データ
+#       : body_temp  = 体温
+#       : text_bg_color = status文字列背景 
+def draw_temp(camera_img, body_temp, text_bg_color):
+  cv2.rectangle(camera_img, TEMP_START_POS, TEMP_END_POS, text_bg_color, thickness=-1)
+  cv2.putText(camera_img, "{:.1f}".format(body_temp), TEMP_POS,\
+              cv2.FONT_HERSHEY_SIMPLEX, 1.0, COLOR_FRAME, thickness=2)
 
   return
+
 
 
 # 初期化
@@ -145,38 +151,40 @@ try:
 
                 # カメラから映像を取得する（OpenCVへ渡すために、各ピクセルの色の並びをBGRの順番にする）
                 camera.capture(stream, 'bgr', use_video_port=True)
+                camera_img = stream.array.copy()
+
+                # ステータスメッセージ表示位置初期値
+                msgPos = (124, 44)
 
                 #顔検出機能ON
                 if setting.face_detect:
 
                     # 顔検出の処理効率化のために、写真の情報量を落とす（モノクロにする）
-                    grayimg = cv2.cvtColor(stream.array, cv2.COLOR_BGR2GRAY)
+                    grayimg = cv2.cvtColor(camera_img, cv2.COLOR_BGR2GRAY)
 
                     # 顔検出を行う
                     facerect = face_cascade.detectMultiScale(grayimg, scaleFactor=SCALE_FACTOR, \
                                                              minNeighbors=MIN_NIGHBORS, minSize=MIN_SIZE)
 
+                    # ステータスメッセージ初期値
+                    msgStr = '枠内に顔を合わせてください'
+
                     # 顔が１つ検出
                     if len(facerect) == 1:
                         rect = facerect[0]
                         #　顔サイズチェック
-                        check_face_size(rect[2], rect[3], msgStr, msgColor, msgPos)
+                        bodyTemp = check_face_size(rect[2], rect[3])
 
                         #計測不可表示(顔をカメラに近づけてください又は顔をカメラから離してください)
                         if bodyTemp == 0:
                             BodyTempIndex = 0
                             SeqCount = 0
-                            #status文字列背景
-                            COLOR_TEXT_BACK = [255, 255, 255]
-                            cv2.rectangle(stream.array, STATUS_START_POS, STATUS_END_POS, COLOR_TEXT_BACK, thickness=-1)
+                            text_bg_color = [255, 255, 255]  # status文字列背景色
                         # 測定中表示
                         elif SeqCount < AVERAGE_COUNT:
-                            #status文字列背景
-                            COLOR_TEXT_BACK = [255, 0, 0]
-                            cv2.rectangle(stream.array, STATUS_START_POS, STATUS_END_POS, COLOR_TEXT_BACK, thickness=-1)
+                            text_bg_color = COLOR_WAIT  # status文字列背景色
                             msgStr = '計測中...'
-                            msgPos = (270, 44)
-                            msgColor = (0, 0, 0, 0)
+                            msgPos = (270, 44)  # ステータステキスト表示位置
                             SeqCount += 1
                             BodyTempArray[BodyTempIndex] = bodyTemp
                             BodyTempIndex += 1
@@ -192,61 +200,49 @@ try:
                             #体温の平均値算出
                             bodyTempAve = sum(BodyTempArray) / AVERAGE_COUNT
                             if bodyTempAve >= JUDGE_TEMP:
-                                #NG表示
-                                #status文字列背景
-                                COLOR_TEXT_BACK = [0, 0, 255]
-                                cv2.rectangle(stream.array, STATUS_START_POS, STATUS_END_POS, COLOR_TEXT_BACK, thickness=-1)
-                                color = COLOR_FRAME
                                 msgStr = 'NG  体温異常'
-                                msgPos = (236, 44)
-                                msgColor = (0, 0, 0, 0)
-                                cv2.rectangle(stream.array, TEMP_START_POS, TEMP_END_POS, COLOR_TEXT_BACK, thickness=-1)
-                                cv2.putText(stream.array, "{:.1f}".format(bodyTempAve), TEMP_POS,\
-                                            cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, thickness=2)
+                                text_bg_color = COLOR_NG  # status文字列背景色
+
                             else:
-                                #OK表示
-                                #status文字列背景
-                                COLOR_TEXT_BACK = [0, 255, 0]
-                                cv2.rectangle(stream.array, STATUS_START_POS, STATUS_END_POS, COLOR_TEXT_BACK, thickness=-1)
-                                color = COLOR_FRAME
                                 msgStr = 'OK  体温正常'
-                                msgColor = (0, 0, 0, 0)
-                                msgPos = (236, 44)
-                                cv2.rectangle(stream.array, TEMP_START_POS, TEMP_END_POS, COLOR_TEXT_BACK, thickness=-1)
-                                cv2.putText(stream.array, "{:.1f}".format(bodyTempAve), TEMP_POS,\
-                                            cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, thickness=2)
-                        #cv2.rectangle(stream.array, tuple(rect[0:2]), tuple(rect[0:2]+rect[2:4]), color, thickness=2)
+                                text_bg_color = COLOR_OK  # status文字列背景色
+
+                            msgPos = (236, 44)  # ステータステキスト表示位置
+
+                            # 体温描画
+                            draw_temp(camera_img, bodyTempAve, text_bg_color)
+
+                            
                     # 顔が検出されなかった場合or複数検出された場合
                     else:
                         GetBodyTempData.getTempData2(sensordata, False, None) # センサ温度の補正
                         #計測不可表示
-                        #color = COLOR_NONE
                         BodyTempIndex = 0
                         SeqCount = 0
                         msgStr = '枠内に顔を合わせてください'
-                        msgColor = (0, 0, 0, 0)
-                        msgPos = (124, 44)
-                        #status文字列背景
-                        COLOR_TEXT_BACK = [255, 255, 255]
-                        cv2.rectangle(stream.array, STATUS_START_POS, STATUS_END_POS, COLOR_TEXT_BACK, thickness=-1)
-                    cv2.rectangle(stream.array, START_POS, END_POS, COLOR_NONE, thickness=2)            
+                        msgPos = (124, 44)  # ステータステキスト表示位置
+                        text_bg_color = [255, 255, 255]  # status文字列背景色
 
                 else:
-                # 顔検出機能OFFの描画設定###############
+                    # 顔検出機能OFFの描画設定###############
                     # 温度データから体温取得 第二引数は顔検出結果の有無。
                     # 顔検出機能OFFの場合はTrue固定。
                     bodyTemp = GetBodyTempData.getTempData(sensordata, True)
 
+                    # ステータスメッセージ初期値
+                    msgStr = ''
+
                     if bodyTemp == 0:
                         #計測不可表示
-                        color = COLOR_NONE
+                        text_bg_color = COLOR_NONE
                         BodyTempIndex = 0
                         SeqCount = 0
                     elif SeqCount < AVERAGE_COUNT:
                         # 測定中表示
-                        color = COLOR_WAIT
-                        cv2.putText(stream.array, 'wait...', OK_NG_POS,\
-                                    cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, thickness=3)        
+                        text_bg_color = COLOR_WAIT
+                        msgStr = '計測中...'
+                        msgPos = (270, 44)  # ステータステキスト表示位置
+
                         SeqCount += 1
                         BodyTempArray[BodyTempIndex] = bodyTemp
                         BodyTempIndex += 1
@@ -263,21 +259,23 @@ try:
                         #体温の平均値算出
                         bodyTempAve = sum(BodyTempArray) / AVERAGE_COUNT
                         if bodyTempAve >= JUDGE_TEMP:
-                            #NG表示
-                            color = COLOR_NG
-                            cv2.putText(stream.array, 'NG', OK_NG_POS,\
-                                        cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, thickness=3)
-                            cv2.putText(stream.array, "{:.1f}".format(bodyTempAve), TEMP_POS,\
-                                        cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, thickness=2)
+                            msgStr = 'NG  体温異常'
+                            text_bg_color = COLOR_NG  # status文字列背景色
                         else:
-                            #OK表示
-                            color = COLOR_OK
-                            cv2.putText(stream.array, 'OK', OK_NG_POS,\
-                                        cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, thickness=3)
-                            cv2.putText(stream.array, "{:.1f}".format(bodyTempAve),TEMP_POS,\
-                                        cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, thickness=2)
+                            msgStr = 'OK  体温正常'
+                            text_bg_color = COLOR_OK  # status文字列背景色
 
-                    cv2.rectangle(stream.array, START_POS, END_POS, color, thickness=1)            
+                        msgPos = (236, 44)  # ステータステキスト表示位置
+
+                        # 体温描画
+                        draw_temp(camera_img, bodyTempAve, text_bg_color)
+
+                # status文字列背景描画
+                cv2.rectangle(camera_img, STATUS_START_POS, STATUS_END_POS, text_bg_color, thickness=-1)
+                        
+                # センサ範囲矩形描画
+                cv2.rectangle(camera_img, START_POS, END_POS, COLOR_NONE, thickness=2)            
+
                 ########################
 
 
@@ -287,11 +285,12 @@ try:
                                               setting.thermo_width, setting.thermo_height)
 
                 # サーモグラフィ画像合成
-                img = comp_thermo(stream.array.copy(), colorbar_img, thermo_img, setting.comp_ofst_x, setting.comp_ofst_y)
+                img = comp_thermo(camera_img, colorbar_img, thermo_img,\
+                                  setting.comp_ofst_x, setting.comp_ofst_y)
 
                 #msg(日本語文字)合成
                 if msgStr != '':
-                    img = putJapaneseText(img, msgStr, msgPos, msgColor)
+                    img = putJapaneseText(img, msgStr, msgPos, STATUS_TEXT_COLOR)
 
                 # 結果の画像を表示する
                 disp_ret = dispsim(img)
@@ -323,6 +322,7 @@ try:
             # 顔検出のための学習元データを読み込む
             face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
 
+
         while(True):
             #0.1秒のスリープ
             time.sleep(.1)
@@ -330,23 +330,20 @@ try:
             #print(time.time())
 
             #センサから温度データ取得
-            temp = module.readTemp()
+            sensordata = module.readTemp()
 
             # 温度データから体温取得 第二引数は顔検出結果の有無。
             # 顔検出機能OFFの場合はTrue固定。
-            bodyTemp = GetBodyTempData.getTempData(temp, True)
+            bodyTemp = GetBodyTempData.getTempData(sensordata, True)
             if setting.debug:
                 print(bodyTemp)
 
-            # サーモグラフィ画像作成
-            thermo_img = make_thermograph(temp, setting.colorbar_min, setting.colorbar_max,\
-                                          setting.thermo_width, setting.thermo_height)
 
-            #温度データ読み取り
+            #カメラ画像データ読み取り
             pic = module.readPic()
 
-            #status文字列背景
-            cv2.rectangle(pic, STATUS_START_POS, STATUS_END_POS, COLOR_TEXT_BACK, thickness=-1)
+            # ステータスメッセージ表示位置初期値
+            msgPos = (124, 44)
 
             #顔検出機能ON
             if setting.face_detect:
@@ -358,6 +355,9 @@ try:
                 facerect = face_cascade.detectMultiScale(grayimg, scaleFactor=SCALE_FACTOR,\
                                                          minNeighbors=MIN_NIGHBORS, minSize=MIN_SIZE)
 
+                # ステータスメッセージ初期値
+                msgStr = '枠内に顔を合わせてください'
+
                 # 顔が検出された場合
                 if len(facerect) > 0:
                     #検出した場所すべてに赤色で枠を描画する
@@ -365,14 +365,13 @@ try:
                         #人物検出していないまたは顔枠が複数検出
                         if bodyTemp == 0 or len(facerect) > 1:
                             #計測不可表示
-                            color = COLOR_NONE
                             BodyTempIndex = 0
                             SeqCount = 0
                         elif SeqCount < AVERAGE_COUNT:
                             # 測定中表示
-                            color = COLOR_WAIT
-                            cv2.putText(pic, 'wait...', (int(rect[0]),rect[1] - 10),\
-                                        cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, thickness=3)        
+                            text_bg_color = COLOR_WAIT  # status文字列背景色
+                            msgStr = '計測中...'
+                            msgPos = (270, 44)  # ステータステキスト表示位置
                             SeqCount += 1
                             BodyTempArray[BodyTempIndex] = bodyTemp
                             BodyTempIndex += 1
@@ -389,35 +388,35 @@ try:
                             bodyTempAve = sum(BodyTempArray) / AVERAGE_COUNT
                             if bodyTempAve >= JUDGE_TEMP:
                                 #NG表示
-                                color = COLOR_NG
-                                cv2.putText(pic, 'NG', (int(rect[0]), rect[1] - 10),\
-                                            cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, thickness=3)    
-                                cv2.putText(pic, "{:.1f}".format(bodyTempAve),\
-                                           (rect[0] + rect[2] + 10,rect[1] + rect[3]),\
-                                           cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, thickness=2)
+                                msgStr = 'NG  体温異常'
+                                text_bg_color = COLOR_NG  # status文字列背景色
                             else:
-                                #OK表示
-                                color = COLOR_OK
-                                cv2.putText(pic, 'OK', (int(rect[0]),rect[1] - 10),\
-                                            cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, thickness=3)    
-                                cv2.putText(pic, "{:.1f}".format(bodyTempAve),\
-                                           (rect[0] + rect[2] + 10,rect[1] + rect[3]),\
-                                           cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, thickness=2)
+                                msgStr = 'OK  体温正常'
+                                text_bg_color = COLOR_OK  # status文字列背景色
 
-                        cv2.rectangle(pic, tuple(rect[0:2]), tuple(rect[0:2]+rect[2:4]), color, thickness=2)
-                        cv2.rectangle(pic, START_POS, END_POS, COLOR_FRAME, thickness=1)            
+                            msgPos = (236, 44)  # ステータステキスト表示位置
+                            # 体温描画
+                            draw_temp(pic, bodyTempAve, text_bg_color)
+                            
+                        cv2.rectangle(pic, tuple(rect[0:2]), tuple(rect[0:2]+rect[2:4]),\
+                                      text_bg_color, thickness=2)  # 矩形色指定が文字背景色と同一になっている（要確認）
 
             else:
                 # 顔検出機能OFFの描画設定###############
+
+                # ステータスメッセージ初期値
+                msgStr = ''
+
                 if bodyTemp == 0:
                     #計測不可表示
-                    color = COLOR_NONE
                     BodyTempIndex = 0
                     SeqCount = 0
                 elif SeqCount < AVERAGE_COUNT:
                     # 測定中表示
-                    color = COLOR_WAIT
-                    cv2.putText(pic, 'wait...', OK_NG_POS, cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, thickness=3)        
+                    text_bg_color = COLOR_WAIT  # status文字列背景色
+                    msgStr = '計測中...'
+                    msgPos = (270, 44)  # ステータステキスト表示位置
+
                     SeqCount += 1
                     BodyTempArray[BodyTempIndex] = bodyTemp
                     BodyTempIndex += 1
@@ -433,26 +432,38 @@ try:
                     #体温の平均値算出
                     bodyTempAve = sum(BodyTempArray) / AVERAGE_COUNT
                     if bodyTempAve >= JUDGE_TEMP:
-                        #NG表示
-                        color = COLOR_NG
-                        cv2.putText(pic, 'NG', OK_NG_POS, cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, thickness=3)
-                        cv2.putText(pic, "{:.1f}".format(bodyTempAve), TEMP_POS,\
-                                    cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, thickness=2)
+                        msgStr = 'NG  体温異常'
+                        text_bg_color = COLOR_NG  # status文字列背景色
                     else:
-                        #OK表示
-                        color = COLOR_OK
-                        cv2.putText(pic, 'OK', OK_NG_POS, cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, thickness=3)
-                        cv2.putText(pic, "{:.1f}".format(bodyTempAve), TEMP_POS,\
-                                    cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, thickness=2)
+                        msgStr = 'OK  体温正常'
+                        text_bg_color = COLOR_OK  # status文字列背景色
 
-                cv2.rectangle(pic, START_POS, END_POS, color, thickness=3)            
+                    msgPos = (236, 44)  # ステータステキスト表示位置
+                    # 体温描画
+                    draw_temp(pic, bodyTempAve, text_bg_color)
+
                 ########################
+                
+            # status文字列背景描画
+            cv2.rectangle(pic, STATUS_START_POS, STATUS_END_POS, text_bg_color, thickness=-1)
+                        
+            # センサ範囲矩形描画
+            cv2.rectangle(pic, START_POS, END_POS, COLOR_NONE, thickness=1)            
+
+            # サーモグラフィ画像作成
+            thermo_img = make_thermograph(sensordata, setting.colorbar_min, setting.colorbar_max,\
+                                          setting.thermo_width, setting.thermo_height)
 
             # サーモグラフィ画像合成
-            comp_thermo(pic, colorbar_img, thermo_img, setting.comp_ofst_x, setting.comp_ofst_y)
+            img = comp_thermo(pic, colorbar_img, thermo_img, setting.comp_ofst_x, setting.comp_ofst_y)
+
+            #msg(日本語文字)合成
+            if msgStr != '':
+                img = putJapaneseText(img, msgStr, msgPos, STATUS_TEXT_COLOR)
+
 
             # 画像出力
-            disp_ret = dispsim(pic)
+            disp_ret = dispsim(img)
 
             #　出力失敗の場合または閉じるボタン押下の時は終了する
             if disp_ret == False:
