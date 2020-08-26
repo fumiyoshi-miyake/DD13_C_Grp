@@ -2,10 +2,15 @@
 
 from PIL import Image, ImageFont, ImageDraw
 import numpy as np
+import setting
 
 # フォントファイルへのパス
-#font_path = '/usr/share/fonts/opentype/ipafont-gothic/ipag.ttf'
-font_path = '/usr/share/fonts/opentype/ipaexfont-gothic/ipaexg.ttf'
+if setting.mode == 0:
+  #font_path = '/usr/share/fonts/opentype/ipafont-gothic/ipag.ttf'
+  font_path = '/usr/share/fonts/opentype/ipaexfont-gothic/ipaexg.ttf'
+else:
+  # ubuntu
+  font_path = '/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc'
 
 # フォントサイズ
 font_size = 30
