@@ -72,7 +72,7 @@ def check_face_size(rect_2, rect_3):
 
 # 体温描画
 # Input : text_bg_color = status文字列背景
-def draw_temp(bodyTempAve, text_bg_color):
+def draw_temp(camera_img, bodyTempAve, text_bg_color):
   cv2.rectangle(camera_img, TEMP_START_POS, TEMP_END_POS, text_bg_color, thickness=-1)
   cv2.putText(camera_img, "{:.1f}".format(bodyTempAve), TEMP_POS,\
               cv2.FONT_HERSHEY_SIMPLEX, 1.0, COLOR_FRAME, thickness=2)
@@ -192,18 +192,18 @@ try:
                             bodyTempAve = sum(BodyTempArray) / AVERAGE_COUNT
                             if bodyTempAve >= JUDGE_TEMP:
                                 msgStr = 'NG  体温異常'
-                                COLOR_TEXT_BACK = [0, 0, 255]  # status文字列背景色
+                                COLOR_TEXT_BACK = COLOR_NG  # status文字列背景色
 
                             else:
                                 msgStr = 'OK  体温正常'
-                                COLOR_TEXT_BACK = [0, 255, 0]  # status文字列背景色
+                                COLOR_TEXT_BACK = COLOR_OK  # status文字列背景色
 
                             color = COLOR_FRAME
                             msgColor = (0, 0, 0, 0)
                             msgPos = (236, 44)
 
                             # 体温描画
-                            draw_temp(bodyTempAve, COLOR_TEXT_BACK)
+                            draw_temp(camera_img, bodyTempAve, COLOR_TEXT_BACK)
 
                             
                     # 顔が検出されなかった場合or複数検出された場合
@@ -220,7 +220,7 @@ try:
                     # status文字列背景描画
                     cv2.rectangle(camera_img, STATUS_START_POS, STATUS_END_POS, COLOR_TEXT_BACK, thickness=-1)
                         
-                    # センサ範囲矩形描画    
+                    # センサ範囲矩形描画
                     cv2.rectangle(camera_img, START_POS, END_POS, COLOR_NONE, thickness=2)            
 
                 else:
@@ -265,10 +265,11 @@ try:
                             cv2.putText(camera_img, 'OK', OK_NG_POS,\
                                         cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, thickness=3)
 
-                        cv2.putText(camera_img, "{:.1f}".format(bodyTempAve),TEMP_POS,\
-                                    cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, thickness=2)
+                        # 体温描画
+                        draw_temp(camera_img, bodyTempAve, color)
 
-                    cv2.rectangle(camera_img, START_POS, END_POS, color, thickness=1)            
+                    # センサ範囲矩形描画
+                    cv2.rectangle(camera_img, START_POS, END_POS, color, thickness=1)
                 ########################
 
 
@@ -381,19 +382,18 @@ try:
                                 color = COLOR_NG
                                 cv2.putText(pic, 'NG', (int(rect[0]), rect[1] - 10),\
                                             cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, thickness=3)    
-                                cv2.putText(pic, "{:.1f}".format(bodyTempAve),\
-                                           (rect[0] + rect[2] + 10,rect[1] + rect[3]),\
-                                           cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, thickness=2)
                             else:
                                 #OK表示
                                 color = COLOR_OK
                                 cv2.putText(pic, 'OK', (int(rect[0]),rect[1] - 10),\
-                                            cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, thickness=3)    
-                                cv2.putText(pic, "{:.1f}".format(bodyTempAve),\
-                                           (rect[0] + rect[2] + 10,rect[1] + rect[3]),\
-                                           cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, thickness=2)
+                                            cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, thickness=3)
 
+                            # 体温描画
+                            draw_temp(pic, bodyTempAve, color)
+                            
                         cv2.rectangle(pic, tuple(rect[0:2]), tuple(rect[0:2]+rect[2:4]), color, thickness=2)
+
+                        # センサ範囲矩形描画
                         cv2.rectangle(pic, START_POS, END_POS, COLOR_FRAME, thickness=1)            
 
             else:
@@ -425,15 +425,15 @@ try:
                         #NG表示
                         color = COLOR_NG
                         cv2.putText(pic, 'NG', OK_NG_POS, cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, thickness=3)
-                        cv2.putText(pic, "{:.1f}".format(bodyTempAve), TEMP_POS,\
-                                    cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, thickness=2)
                     else:
                         #OK表示
                         color = COLOR_OK
                         cv2.putText(pic, 'OK', OK_NG_POS, cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, thickness=3)
-                        cv2.putText(pic, "{:.1f}".format(bodyTempAve), TEMP_POS,\
-                                    cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, thickness=2)
 
+                    # 体温描画
+                    draw_temp(pic, bodyTempAve, color)
+                    
+                # センサ範囲矩形描画
                 cv2.rectangle(pic, START_POS, END_POS, color, thickness=1)            
                 ########################
 
