@@ -27,22 +27,27 @@ START_POS = (200, 80)
 END_POS = (440, 420)
 
 # 文字垂直位置オフセット（下端から離す量）
-TEXT_VERTICAL_OFFSET = 6
+TEXT_VERTICAL_OFFSET = 8
 
-# 文字座標
-OK_NG_POS = (160, 80 + TEXT_VERTICAL_OFFSET)
-TEMP_POS = (480, 360 + TEXT_VERTICAL_OFFSET)
+# ステータステキスト表示Y座標
+STATUS_TEXT_POS_Y = 44 - TEXT_VERTICAL_OFFSET
+# OK/NG 時のステータステキスト表示座標
+STATUS_TEXT_OK_NG_POS = (236, STATUS_TEXT_POS_Y)
 
 # ステータステキスト背景座標
 #STATUS_START_POS = (160, 40)
 #STATUS_START_POS = (72, 39)
-STATUS_START_POS = (72, OK_NG_POS[1]-41)
+STATUS_START_POS = (72, START_POS[1]-42)
 #STATUS_END_POS = (480, 80)
 #STATUS_END_POS = (564, 79)
-STATUS_END_POS = (564, OK_NG_POS[1]-1)
+STATUS_END_POS = (564, START_POS[1]-2)
 
 # ステータステキスト文字色
 STATUS_TEXT_COLOR = (0, 0, 0, 0)
+
+# 温度テキスト座標
+#TEMP_POS = (480, 360 - TEXT_VERTICAL_OFFSET)
+TEMP_POS = (END_POS[0]+2, 360 - TEXT_VERTICAL_OFFSET)
 
 # 温度テキスト文字色
 TEMP_TEXT_COLOR = (0, 0, 0)
@@ -131,7 +136,7 @@ def face_detect_on(camera_img, BodyTempIndex, SeqCount, msgPos, text_bg_color):
         elif SeqCount < AVERAGE_COUNT:
             text_bg_color = COLOR_WAIT  # status文字列背景色
             msgStr = '計測中...'
-            msgPos = (270, 44)  # ステータステキスト表示位置
+            msgPos = (270, STATUS_TEXT_POS_Y)  # ステータステキスト表示位置
             SeqCount += 1
             BodyTempArray[BodyTempIndex] = bodyTemp
             BodyTempIndex += 1
@@ -153,7 +158,7 @@ def face_detect_on(camera_img, BodyTempIndex, SeqCount, msgPos, text_bg_color):
                 msgStr = 'OK  体温正常'
                 text_bg_color = COLOR_OK  # status文字列背景色
 
-            msgPos = (236, 44)  # ステータステキスト表示位置
+            msgPos = STATUS_TEXT_OK_NG_POS  # ステータステキスト表示位置
             # 体温描画
             draw_temp(camera_img, bodyTempAve, text_bg_color)
 
@@ -164,7 +169,7 @@ def face_detect_on(camera_img, BodyTempIndex, SeqCount, msgPos, text_bg_color):
         BodyTempIndex = 0
         SeqCount = 0
         msgStr = '手首の内側を枠に合わせてください'
-        msgPos = (124, 44)  # ステータステキスト表示位置
+        msgPos = (124, STATUS_TEXT_POS_Y)  # ステータステキスト表示位置
         text_bg_color = [255, 255, 255]  # status文字列背景色
 
     return BodyTempIndex, SeqCount, msgStr
@@ -244,7 +249,7 @@ try:
                 camera_img = stream.array.copy()
 
                 # ステータスメッセージ表示位置初期値
-                msgPos = (80, 44)
+                msgPos = (80, STATUS_TEXT_POS_Y)
                 text_bg_color = COLOR_NONE
 
                 #顔検出機能ON
@@ -258,7 +263,7 @@ try:
                     bodyTemp = GetBodyTempData.getTempData(sensordata, True)
 
                     # ステータスメッセージ初期値
-                    msgStr = ''
+                    msgStr = '手首の内側を枠に合わせてください'
                     text_bg_color = COLOR_NONE
 
 
@@ -271,7 +276,7 @@ try:
                         # 測定中表示
                         text_bg_color = COLOR_WAIT
                         msgStr = '計測中...'
-                        msgPos = (270, 44)  # ステータステキスト表示位置
+                        msgPos = (270, STATUS_TEXT_POS_Y)  # ステータステキスト表示位置
 
                         SeqCount += 1
                         BodyTempArray[BodyTempIndex] = bodyTemp
@@ -295,7 +300,7 @@ try:
                             msgStr = 'OK  体温正常'
                             text_bg_color = COLOR_OK  # status文字列背景色
 
-                        msgPos = (236, 44)  # ステータステキスト表示位置
+                        msgPos = STATUS_TEXT_OK_NG_POS  # ステータステキスト表示位置
 
                         # 体温描画
                         draw_temp(camera_img, bodyTempAve, text_bg_color)
@@ -364,7 +369,7 @@ try:
             pic = module.readPic()
 
             # ステータスメッセージ表示位置初期値
-            msgPos = (80, 44)
+            msgPos = (80, STATUS_TEXT_POS_Y)
             text_bg_color = COLOR_NONE
 
             #顔検出機能ON
@@ -387,7 +392,7 @@ try:
                     # 測定中表示
                     text_bg_color = COLOR_WAIT  # status文字列背景色
                     msgStr = '計測中...'
-                    msgPos = (270, 44)  # ステータステキスト表示位置
+                    msgPos = (270, STATUS_TEXT_POS_Y)  # ステータステキスト表示位置
 
                     SeqCount += 1
                     BodyTempArray[BodyTempIndex] = bodyTemp
@@ -410,7 +415,7 @@ try:
                         msgStr = 'OK  体温正常'
                         text_bg_color = COLOR_OK  # status文字列背景色
 
-                    msgPos = (236, 44)  # ステータステキスト表示位置
+                    msgPos = STATUS_TEXT_OK_NG_POS  # ステータステキスト表示位置
                     # 体温描画
                     draw_temp(pic, bodyTempAve, text_bg_color)
 
