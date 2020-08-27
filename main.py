@@ -19,15 +19,20 @@ COLOR_WAIT = [255, 0, 0]
 COLOR_OK   = [0, 255, 0]
 COLOR_NG   = [0, 0, 255]
 COLOR_FRAME = [0, 0, 0]
+COLOR_TEXT_BACK = [255, 255, 255]
 
 # センサー座標
 START_POS = (160, 80)
 #END_POS = (480, 400)
 END_POS = (480, 420)
 
+# ステータステキスト背景座標
+STATUS_START_POS = (160, 40)
+STATUS_END_POS = (480, 80)
+
 # 文字座標
-OK_NG_POS = (160, 70)
-TEMP_POS = (480, 390)
+OK_NG_POS = (160, 80)
+TEMP_POS = (480, 360)
 
 # ステータステキスト背景座標
 #STATUS_START_POS = (160, 40)
@@ -143,6 +148,9 @@ try:
                 #print('------ Thermo Data -------')
                 #print(*sensordata, sep='\n')
                 #print('--------------------------')
+
+                # 自動キャリブレーション
+                GetBodyTempData.setOffsetTempData(sensordata)
 
                 # カメラから映像を取得する（OpenCVへ渡すために、各ピクセルの色の並びをBGRの順番にする）
                 camera.capture(stream, 'bgr', use_video_port=True)
@@ -327,6 +335,9 @@ try:
             #センサから温度データ取得
             sensordata = module.readTemp()
 
+            # 自動キャリブレーション
+            GetBodyTempData.setOffsetTempData(sensordata)
+
             # 温度データから体温取得 第二引数は顔検出結果の有無。
             # 顔検出機能OFFの場合はTrue固定。
             bodyTemp = GetBodyTempData.getTempData(sensordata, True)
@@ -339,7 +350,6 @@ try:
 
             # ステータスメッセージ表示位置初期値
             msgPos = (124, 44)
-
 
             #顔検出機能ON
             if setting.face_detect:
