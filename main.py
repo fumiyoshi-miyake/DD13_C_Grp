@@ -26,28 +26,32 @@ START_POS = (200, 80)
 #END_POS = (480, 400)
 END_POS = (440, 420)
 
-# ステータステキスト背景座標
-STATUS_START_POS = (160, 40)
-STATUS_END_POS = (480, 80)
+# 文字垂直位置オフセット（下端から離す量）
+TEXT_VERTICAL_OFFSET = 6
 
 # 文字座標
-OK_NG_POS = (160, 80)
-TEMP_POS = (480, 360)
+OK_NG_POS = (160, 80 + TEXT_VERTICAL_OFFSET)
+TEMP_POS = (480, 360 + TEXT_VERTICAL_OFFSET)
 
 # ステータステキスト背景座標
 #STATUS_START_POS = (160, 40)
-STATUS_START_POS = (72, 39)
+#STATUS_START_POS = (72, 39)
+STATUS_START_POS = (72, OK_NG_POS[1]-41)
 #STATUS_END_POS = (480, 80)
-STATUS_END_POS = (564, 79)
+#STATUS_END_POS = (564, 79)
+STATUS_END_POS = (564, OK_NG_POS[1]-1)
 
 # ステータステキスト文字色
 STATUS_TEXT_COLOR = (0, 0, 0, 0)
 
+# 温度テキスト文字色
+TEMP_TEXT_COLOR = (0, 0, 0)
+
 # 温度テキスト背景座標
 #TEMP_START_POS = (480, 360)
-TEMP_START_POS = (480, 360)
-#TEMP_END_POS = (550, 390)
-TEMP_END_POS = (550, 396)
+TEMP_START_POS = (TEMP_POS[0], TEMP_POS[1]-36)
+#TEMP_END_POS = (550, 396)
+TEMP_END_POS = (TEMP_POS[0]+70, TEMP_POS[1])
 
 #温度OK/NGしきい値
 JUDGE_TEMP = 37.5
@@ -84,7 +88,7 @@ def check_face_size(rect_2, rect_3):
 def draw_temp(camera_img, body_temp, text_bg_color):
   cv2.rectangle(camera_img, TEMP_START_POS, TEMP_END_POS, text_bg_color, thickness=-1)
   cv2.putText(camera_img, "{:.1f}".format(body_temp), TEMP_POS,\
-              cv2.FONT_HERSHEY_SIMPLEX, 1.0, COLOR_FRAME, thickness=2)
+              cv2.FONT_HERSHEY_SIMPLEX, 1.0, TEMP_TEXT_COLOR, thickness=2)
 
   return
 
@@ -117,7 +121,6 @@ try:
     colorbar_img = make_colorbar(setting.colorbar_min, setting.colorbar_max,\
                                  setting.colorbar_width, setting.colorbar_height)
 
-
     # 実機
     if setting.mode == 0:
         # センサ初期化
@@ -125,15 +128,23 @@ try:
 
         # カメラ初期化
         camera = raspicamera.InitCamera( setting.debug )
+    # Sim
+    else:
+        print('start dispsim ---')
 
-        # ウィンドウ開く
-        open_disp_machine()
+ 
+    # 実機/Sim 共通
+    # ウィンドウ開く
+    open_disp_machine()
 
-        #顔検出機能ON
-        if setting.face_detect:
-            # 顔検出のための学習元データを読み込む
-            face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
+    #顔検出機能ON
+    if setting.face_detect:
+        # 顔検出のための学習元データを読み込む
+        face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
+        
 
+    # 実機
+    if setting.mode == 0:
         # カメラの画像をリアルタイムで取得するための処理(streamがメモリー上の画像データ)
         with picamera.array.PiRGBArray(camera) as stream:
             while True:
@@ -273,15 +284,13 @@ try:
                         # 体温描画
                         draw_temp(camera_img, bodyTempAve, text_bg_color)
 
+                ########################
+
                 # status文字列背景描画
                 cv2.rectangle(camera_img, STATUS_START_POS, STATUS_END_POS, text_bg_color, thickness=-1)
                         
                 # センサ範囲矩形描画
                 cv2.rectangle(camera_img, START_POS, END_POS, COLOR_NONE, thickness=2)            
-
-                ########################
-
-
 
                 # サーモグラフィ画像作成
                 thermo_img = make_thermograph(sensordata, setting.colorbar_min, setting.colorbar_max,\
@@ -315,16 +324,6 @@ try:
                     exit()
     #シュミレーター
     else:
-        print('start dispsim ---')
-
-        # ウィンドウ開く
-        open_disp_machine()
-
-        #顔検出機能ON
-        if setting.face_detect:
-            # 顔検出のための学習元データを読み込む
-            face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
-
 
         while(True):
             #0.1秒のスリープ
@@ -371,6 +370,7 @@ try:
                         #人物検出していないまたは顔枠が複数検出
                         if bodyTemp == 0 or len(facerect) > 1:
                             #計測不可表示
+                            text_bg_color = COLOR_NONE
                             BodyTempIndex = 0
                             SeqCount = 0
                         elif SeqCount < AVERAGE_COUNT:
