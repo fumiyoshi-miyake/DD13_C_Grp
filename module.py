@@ -47,8 +47,8 @@ if setting.mode == 1 :
         if setting.mode == 1:
             global pic_data_count
             image = cv2.imread(pic_list[pic_data_count])
-            #10個読み込んだ場合は先頭に戻す
-            if pic_data_count == 9:
+            #8個読み込んだ場合は先頭に戻す
+            if pic_data_count == 7:
                 pic_data_count = 0
             else:
                 #次に読むターゲットデータを進める

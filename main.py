@@ -22,9 +22,9 @@ COLOR_FRAME = [0, 0, 0]
 COLOR_TEXT_BACK = [255, 255, 255]
 
 # センサー座標
-START_POS = (160, 80)
+START_POS = (200, 80)
 #END_POS = (480, 400)
-END_POS = (480, 420)
+END_POS = (440, 420)
 
 # ステータステキスト背景座標
 STATUS_START_POS = (160, 40)
@@ -36,9 +36,9 @@ TEMP_POS = (480, 360)
 
 # ステータステキスト背景座標
 #STATUS_START_POS = (160, 40)
-STATUS_START_POS = (102, 39)
+STATUS_START_POS = (72, 39)
 #STATUS_END_POS = (480, 80)
-STATUS_END_POS = (534, 79)
+STATUS_END_POS = (564, 79)
 
 # ステータステキスト文字色
 STATUS_TEXT_COLOR = (0, 0, 0, 0)
@@ -157,7 +157,7 @@ try:
                 camera_img = stream.array.copy()
 
                 # ステータスメッセージ表示位置初期値
-                msgPos = (124, 44)
+                msgPos = (80, 44)
 
                 #顔検出機能ON
                 if setting.face_detect:
@@ -222,7 +222,7 @@ try:
                         #計測不可表示
                         BodyTempIndex = 0
                         SeqCount = 0
-                        msgStr = '枠内に顔を合わせてください'
+                        msgStr = '手首の内側を枠に合わせてください'
                         msgPos = (124, 44)  # ステータステキスト表示位置
                         text_bg_color = [255, 255, 255]  # status文字列背景色
 
@@ -349,7 +349,7 @@ try:
             pic = module.readPic()
 
             # ステータスメッセージ表示位置初期値
-            msgPos = (124, 44)
+            msgPos = (80, 44)
 
             #顔検出機能ON
             if setting.face_detect:
@@ -362,7 +362,7 @@ try:
                                                          minNeighbors=MIN_NIGHBORS, minSize=MIN_SIZE)
 
                 # ステータスメッセージ初期値
-                msgStr = '枠内に顔を合わせてください'
+                msgStr = '手首の内側を枠に合わせてください'
 
                 # 顔が検出された場合
                 if len(facerect) > 0:
@@ -411,10 +411,11 @@ try:
                 # 顔検出機能OFFの描画設定###############
 
                 # ステータスメッセージ初期値
-                msgStr = ''
+                msgStr = '手首の内側を枠に合わせてください'
 
                 if bodyTemp == 0:
                     #計測不可表示
+                    text_bg_color = COLOR_NONE
                     BodyTempIndex = 0
                     SeqCount = 0
                 elif SeqCount < AVERAGE_COUNT:
@@ -454,7 +455,7 @@ try:
             cv2.rectangle(pic, STATUS_START_POS, STATUS_END_POS, text_bg_color, thickness=-1)
                         
             # センサ範囲矩形描画
-            cv2.rectangle(pic, START_POS, END_POS, COLOR_NONE, thickness=1)            
+            cv2.rectangle(pic, START_POS, END_POS, COLOR_FRAME, thickness=2)            
 
             # サーモグラフィ画像作成
             thermo_img = make_thermograph(sensordata, setting.colorbar_min, setting.colorbar_max,\

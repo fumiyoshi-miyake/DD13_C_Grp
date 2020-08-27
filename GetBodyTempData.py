@@ -3,9 +3,9 @@ import numpy as np
 # 温度測定判定で使用する温度しきい値
 TEMPERATURE_TH = 35.0
 # 温度測定判定で使用する温度しきい値以上のデータ数のしきい値
-AVERAGE_COUNT_TH = 3
+AVERAGE_COUNT_TH = 12
 # 測定手法（0:平均値, 1:最大値）
-MEASUREMENT_METHOD = 1
+MEASUREMENT_METHOD = 0
 
 # 体温のオフセット値(この値は周辺温度により変動する)
 offset_temp = 4.8
@@ -36,8 +36,8 @@ def setOffsetTempData(inTemp):
         (decideTemp <= CHNAGE_OFFSET_TEMP_MAX) and \
         (decideTemp >= CHNAGE_OFFSET_TEMP_MIN):
         
-        offset_temp = (decideTemp - CHNAGE_OFFSET_TEMP_MIN) *\
-         (MAX_OFFSET_TEMP - MIN_OFFSET_TEMP) / (CHNAGE_OFFSET_TEMP_MAX - CHNAGE_OFFSET_TEMP_MIN)
+        offset_temp = MIN_OFFSET_TEMP - (decideTemp - CHNAGE_OFFSET_TEMP_MIN) *\
+         (MIN_OFFSET_TEMP - MAX_OFFSET_TEMP) / (CHNAGE_OFFSET_TEMP_MAX - CHNAGE_OFFSET_TEMP_MIN)
         
         print(offset_temp)
 
@@ -51,6 +51,7 @@ def getTempData(inTemp, isDetFace):
     sumTemp = 0
     countTemp = 0
     maxTemp = 0
+    edgeCheck = True #センサの左右の端一列に閾値以上のデータがないかの判定（ない場合：true,ある場合：false）
 
     # センサ解像度分ループ
     for i in range(8):
@@ -65,10 +66,21 @@ def getTempData(inTemp, isDetFace):
                     sumTemp += inTemp[i][j]
                     if maxTemp < inTemp[i][j]:
                         maxTemp = inTemp[i][j]
+                        
+            #センサの左右の端一列に閾値以上のデータがないかの判定
+            if j == 0 or j ==7:
+                if TEMPERATURE_TH <= inTemp[i][j]:
+                    edgeCheck = False
+                
 
     # 人物検出していない場合は0（無効値）を返す
     if isDetFace == False:
        return 0
+    
+    #センサの左右の端一列に閾値以上のデータがある場合は0（無効値）を返す
+    if edgeCheck == False:
+       return 0
+
 
     # しきい値以上の温度データが得られたら、温度データを返却する
     if countTemp >= AVERAGE_COUNT_TH:
