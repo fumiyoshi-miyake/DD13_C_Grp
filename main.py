@@ -66,10 +66,11 @@ AVERAGE_COUNT = 4
 
 
 
-
+# ------------------------------
 # 顔サイズチェック
 # Input  : rect_2, rect_3
 # Return : bodyTemp
+# ------------------------------
 def check_face_size(rect_2, rect_3):
   if rect_2 < 200 or rect_3 < 320:
     bodyTemp = GetBodyTempData.getTempData2(sensordata, False, None) # センサ温度の補正
@@ -81,10 +82,12 @@ def check_face_size(rect_2, rect_3):
   return bodyTemp
 
 
+# ------------------------------
 # 体温描画
 # Input : camera_img = カメラ画像データ
 #       : body_temp  = 体温
 #       : text_bg_color = status文字列背景 
+# ------------------------------
 def draw_temp(camera_img, body_temp, text_bg_color):
   cv2.rectangle(camera_img, TEMP_START_POS, TEMP_END_POS, text_bg_color, thickness=-1)
   cv2.putText(camera_img, "{:.1f}".format(body_temp), TEMP_POS,\
@@ -92,6 +95,79 @@ def draw_temp(camera_img, body_temp, text_bg_color):
 
   return
 
+
+# ------------------------------
+# 顔検出On
+# Input  : camera_img    = カメラ画像データ
+#        : BodyTempIndex, SeqCount,
+#        : msgPos        = ステータス表示文字列位置
+#        : text_bg_color = 文字列背景色
+# Return : BodyTempIndex, SeqCount,
+#        : msgStr        = ステータス表示文字列
+# ------------------------------
+def face_detect_on(camera_img, BodyTempIndex, SeqCount, msgPos, text_bg_color):
+    # 顔検出の処理効率化のために、写真の情報量を落とす（モノクロにする）
+    grayimg = cv2.cvtColor(camera_img, cv2.COLOR_BGR2GRAY)
+
+    # 顔検出を行う
+    facerect = face_cascade.detectMultiScale(grayimg, scaleFactor=SCALE_FACTOR, \
+                                             minNeighbors=MIN_NIGHBORS, minSize=MIN_SIZE)
+
+    # ステータスメッセージ初期値
+    msgStr = '枠内に顔を合わせてください'
+
+    # 顔が１つ検出
+    if len(facerect) == 1:
+        rect = facerect[0]
+        #　顔サイズチェック
+        bodyTemp = check_face_size(rect[2], rect[3])
+
+        #計測不可表示(顔をカメラに近づけてください又は顔をカメラから離してください)
+        if bodyTemp == 0:
+            BodyTempIndex = 0
+            SeqCount = 0
+            text_bg_color = [255, 255, 255]  # status文字列背景色
+        # 測定中表示
+        elif SeqCount < AVERAGE_COUNT:
+            text_bg_color = COLOR_WAIT  # status文字列背景色
+            msgStr = '計測中...'
+            msgPos = (270, 44)  # ステータステキスト表示位置
+            SeqCount += 1
+            BodyTempArray[BodyTempIndex] = bodyTemp
+            BodyTempIndex += 1
+            if BodyTempIndex >= AVERAGE_COUNT:
+                BodyTempIndex = 0
+        # 体温表示
+        else:
+            BodyTempArray[BodyTempIndex] = bodyTemp
+            BodyTempIndex += 1
+            if BodyTempIndex >= AVERAGE_COUNT:
+                BodyTempIndex = 0
+
+            #体温の平均値算出
+            bodyTempAve = sum(BodyTempArray) / AVERAGE_COUNT
+            if bodyTempAve >= JUDGE_TEMP:
+                msgStr = 'NG  体温異常'
+                text_bg_color = COLOR_NG  # status文字列背景色
+            else:
+                msgStr = 'OK  体温正常'
+                text_bg_color = COLOR_OK  # status文字列背景色
+
+            msgPos = (236, 44)  # ステータステキスト表示位置
+            # 体温描画
+            draw_temp(camera_img, bodyTempAve, text_bg_color)
+
+    # 顔が検出されなかった場合or複数検出された場合
+    else:
+        GetBodyTempData.getTempData2(sensordata, False, None) # センサ温度の補正
+        #計測不可表示
+        BodyTempIndex = 0
+        SeqCount = 0
+        msgStr = '手首の内側を枠に合わせてください'
+        msgPos = (124, 44)  # ステータステキスト表示位置
+        text_bg_color = [255, 255, 255]  # status文字列背景色
+
+    return BodyTempIndex, SeqCount, msgStr
 
 
 # 初期化
@@ -169,73 +245,11 @@ try:
 
                 # ステータスメッセージ表示位置初期値
                 msgPos = (80, 44)
+                text_bg_color = COLOR_NONE
 
                 #顔検出機能ON
                 if setting.face_detect:
-
-                    # 顔検出の処理効率化のために、写真の情報量を落とす（モノクロにする）
-                    grayimg = cv2.cvtColor(camera_img, cv2.COLOR_BGR2GRAY)
-
-                    # 顔検出を行う
-                    facerect = face_cascade.detectMultiScale(grayimg, scaleFactor=SCALE_FACTOR, \
-                                                             minNeighbors=MIN_NIGHBORS, minSize=MIN_SIZE)
-
-                    # ステータスメッセージ初期値
-                    msgStr = '枠内に顔を合わせてください'
-
-                    # 顔が１つ検出
-                    if len(facerect) == 1:
-                        rect = facerect[0]
-                        #　顔サイズチェック
-                        bodyTemp = check_face_size(rect[2], rect[3])
-
-                        #計測不可表示(顔をカメラに近づけてください又は顔をカメラから離してください)
-                        if bodyTemp == 0:
-                            BodyTempIndex = 0
-                            SeqCount = 0
-                            text_bg_color = [255, 255, 255]  # status文字列背景色
-                        # 測定中表示
-                        elif SeqCount < AVERAGE_COUNT:
-                            text_bg_color = COLOR_WAIT  # status文字列背景色
-                            msgStr = '計測中...'
-                            msgPos = (270, 44)  # ステータステキスト表示位置
-                            SeqCount += 1
-                            BodyTempArray[BodyTempIndex] = bodyTemp
-                            BodyTempIndex += 1
-                            if BodyTempIndex >= AVERAGE_COUNT:
-                                BodyTempIndex = 0
-                        # 体温表示
-                        else:
-                            BodyTempArray[BodyTempIndex] = bodyTemp
-                            BodyTempIndex += 1
-                            if BodyTempIndex >= AVERAGE_COUNT:
-                                BodyTempIndex = 0
-
-                            #体温の平均値算出
-                            bodyTempAve = sum(BodyTempArray) / AVERAGE_COUNT
-                            if bodyTempAve >= JUDGE_TEMP:
-                                msgStr = 'NG  体温異常'
-                                text_bg_color = COLOR_NG  # status文字列背景色
-
-                            else:
-                                msgStr = 'OK  体温正常'
-                                text_bg_color = COLOR_OK  # status文字列背景色
-
-                            msgPos = (236, 44)  # ステータステキスト表示位置
-
-                            # 体温描画
-                            draw_temp(camera_img, bodyTempAve, text_bg_color)
-
-                            
-                    # 顔が検出されなかった場合or複数検出された場合
-                    else:
-                        GetBodyTempData.getTempData2(sensordata, False, None) # センサ温度の補正
-                        #計測不可表示
-                        BodyTempIndex = 0
-                        SeqCount = 0
-                        msgStr = '手首の内側を枠に合わせてください'
-                        msgPos = (124, 44)  # ステータステキスト表示位置
-                        text_bg_color = [255, 255, 255]  # status文字列背景色
+                    BodyTempIndex, SeqCount, msgStr = face_detect_on(pic, BodyTempIndex, SeqCount, msgPos, text_bg_color)
 
                 else:
                     # 顔検出機能OFFの描画設定###############
@@ -245,6 +259,8 @@ try:
 
                     # ステータスメッセージ初期値
                     msgStr = ''
+                    text_bg_color = COLOR_NONE
+
 
                     if bodyTemp == 0:
                         #計測不可表示
@@ -349,69 +365,18 @@ try:
 
             # ステータスメッセージ表示位置初期値
             msgPos = (80, 44)
+            text_bg_color = COLOR_NONE
 
             #顔検出機能ON
             if setting.face_detect:
-
-                # 顔検出の処理効率化のために、写真の情報量を落とす（モノクロにする）
-                grayimg = cv2.cvtColor(pic, cv2.COLOR_BGR2GRAY)
-
-                # 顔検出を行う
-                facerect = face_cascade.detectMultiScale(grayimg, scaleFactor=SCALE_FACTOR,\
-                                                         minNeighbors=MIN_NIGHBORS, minSize=MIN_SIZE)
-
-                # ステータスメッセージ初期値
-                msgStr = '手首の内側を枠に合わせてください'
-
-                # 顔が検出された場合
-                if len(facerect) > 0:
-                    #検出した場所すべてに赤色で枠を描画する
-                    for rect in facerect:
-                        #人物検出していないまたは顔枠が複数検出
-                        if bodyTemp == 0 or len(facerect) > 1:
-                            #計測不可表示
-                            text_bg_color = COLOR_NONE
-                            BodyTempIndex = 0
-                            SeqCount = 0
-                        elif SeqCount < AVERAGE_COUNT:
-                            # 測定中表示
-                            text_bg_color = COLOR_WAIT  # status文字列背景色
-                            msgStr = '計測中...'
-                            msgPos = (270, 44)  # ステータステキスト表示位置
-                            SeqCount += 1
-                            BodyTempArray[BodyTempIndex] = bodyTemp
-                            BodyTempIndex += 1
-                            if BodyTempIndex >= AVERAGE_COUNT:
-                                BodyTempIndex = 0
-		                 
-                        else:
-                            BodyTempArray[BodyTempIndex] = bodyTemp
-                            BodyTempIndex += 1
-                            if BodyTempIndex >= AVERAGE_COUNT:
-                                BodyTempIndex = 0
-
-                            #体温の平均値算出
-                            bodyTempAve = sum(BodyTempArray) / AVERAGE_COUNT
-                            if bodyTempAve >= JUDGE_TEMP:
-                                #NG表示
-                                msgStr = 'NG  体温異常'
-                                text_bg_color = COLOR_NG  # status文字列背景色
-                            else:
-                                msgStr = 'OK  体温正常'
-                                text_bg_color = COLOR_OK  # status文字列背景色
-
-                            msgPos = (236, 44)  # ステータステキスト表示位置
-                            # 体温描画
-                            draw_temp(pic, bodyTempAve, text_bg_color)
-                            
-                        cv2.rectangle(pic, tuple(rect[0:2]), tuple(rect[0:2]+rect[2:4]),\
-                                      text_bg_color, thickness=2)  # 矩形色指定が文字背景色と同一になっている（要確認）
+                BodyTempIndex, SeqCount, msgStr = face_detect_on(pic, BodyTempIndex, SeqCount, msgPos, text_bg_color)
 
             else:
                 # 顔検出機能OFFの描画設定###############
 
                 # ステータスメッセージ初期値
                 msgStr = '手首の内側を枠に合わせてください'
+                text_bg_color = COLOR_NONE
 
                 if bodyTemp == 0:
                     #計測不可表示
