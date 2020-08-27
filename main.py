@@ -168,7 +168,7 @@ def face_detect_on(camera_img, BodyTempIndex, SeqCount, msgPos, text_bg_color):
         #計測不可表示
         BodyTempIndex = 0
         SeqCount = 0
-        msgStr = '手首の内側を枠に合わせてください'
+        msgStr = '枠内に顔を合わせてください'
         msgPos = (124, STATUS_TEXT_POS_Y)  # ステータステキスト表示位置
         text_bg_color = [255, 255, 255]  # status文字列背景色
 
