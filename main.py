@@ -149,6 +149,9 @@ try:
                 #print(*sensordata, sep='\n')
                 #print('--------------------------')
 
+                # 自動キャリブレーション
+                GetBodyTempData.setOffsetTempData(sensordata)
+
                 # カメラから映像を取得する（OpenCVへ渡すために、各ピクセルの色の並びをBGRの順番にする）
                 camera.capture(stream, 'bgr', use_video_port=True)
                 camera_img = stream.array.copy()
@@ -331,6 +334,9 @@ try:
 
             #センサから温度データ取得
             sensordata = module.readTemp()
+
+            # 自動キャリブレーション
+            GetBodyTempData.setOffsetTempData(sensordata)
 
             # 温度データから体温取得 第二引数は顔検出結果の有無。
             # 顔検出機能OFFの場合はTrue固定。
