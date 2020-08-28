@@ -24,7 +24,9 @@ MAX_OFFSET_TEMP = 3
 # キャリブレーション 体温オフセット値チェック
 # ------------------------------
 def setOffsetTempData(inTemp):
-    # NumPy配列 ndarrayに変換
+    global offset_temp
+
+   # NumPy配列 ndarrayに変換
     tmp = np.array(inTemp)
 
     maxTemp = tmp.max()
@@ -38,8 +40,6 @@ def setOffsetTempData(inTemp):
         
         offset_temp = MIN_OFFSET_TEMP - (decideTemp - CHNAGE_OFFSET_TEMP_MIN) *\
          (MIN_OFFSET_TEMP - MAX_OFFSET_TEMP) / (CHNAGE_OFFSET_TEMP_MAX - CHNAGE_OFFSET_TEMP_MIN)
-        
-        print(offset_temp)
 
     return
 
@@ -47,6 +47,7 @@ def setOffsetTempData(inTemp):
 # 温度データ取得
 # ------------------------------
 def getTempData(inTemp, isDetFace):
+    global offset_temp
     outTemp = 0
     sumTemp = 0
     countTemp = 0
@@ -81,7 +82,6 @@ def getTempData(inTemp, isDetFace):
     if edgeCheck == False:
        return 0
 
-
     # しきい値以上の温度データが得られたら、温度データを返却する
     if countTemp >= AVERAGE_COUNT_TH:
        # 平均値出力
@@ -91,7 +91,7 @@ def getTempData(inTemp, isDetFace):
        # 最大値出力
        else:
           outTemp = maxTemp
-         
+
     return outTemp
 
 # ------------------------------
