@@ -3,22 +3,22 @@ import numpy as np
 # 温度測定判定で使用する温度しきい値
 TEMPERATURE_TH = 35.0
 # 温度測定判定で使用する温度しきい値以上のデータ数のしきい値
-AVERAGE_COUNT_TH = 12
+AVERAGE_COUNT_TH = 8
 # 測定手法（0:平均値, 1:最大値）
 MEASUREMENT_METHOD = 0
 
 # 体温のオフセット値(この値は周辺温度により変動する)
-offset_temp = 4.8
+offset_temp = 4.2
 
 # 体温オフセット値変更しきい値
 CHANGE_OFFSET_TEMP = 3.0
-CHNAGE_OFFSET_TEMP_MAX = 30
-CHNAGE_OFFSET_TEMP_MIN = 20
+CHNAGE_OFFSET_TEMP_MAX = 29.375
+CHNAGE_OFFSET_TEMP_MIN = 24.875
 
 # 周辺温度が最低の時のオフセット値
-MIN_OFFSET_TEMP = 8
+MIN_OFFSET_TEMP = 4.9
 # 周辺温度が最高の時のオフセット値
-MAX_OFFSET_TEMP = 3
+MAX_OFFSET_TEMP = 3.525
 
 # ------------------------------
 # キャリブレーション 体温オフセット値チェック
