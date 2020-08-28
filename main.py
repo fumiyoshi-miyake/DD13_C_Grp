@@ -26,16 +26,16 @@ START_POS = (200, 80)
 #END_POS = (480, 400)
 END_POS = (440, 420)
 
-# 文字垂直位置オフセット（下端から離す距離）
+# ステータス文字垂直位置オフセット（背景の下端から離す距離）
 if setting.mode == 0:
     # 実機
-    TEXT_VERTICAL_OFFSET = 4
+    STATUS_TEXT_OFFSET_Y = 0
 else:
     # Sim
-    TEXT_VERTICAL_OFFSET = 8
+    STATUS_TEXT_OFFSET_Y = 8
 
 # ステータステキスト表示Y座標
-STATUS_TEXT_POS_Y = 44 - TEXT_VERTICAL_OFFSET
+STATUS_TEXT_POS_Y = 44 - STATUS_TEXT_OFFSET_Y
 # OK/NG 時のステータステキスト表示座標
 STATUS_TEXT_OK_NG_POS = (236, STATUS_TEXT_POS_Y)
 
@@ -57,9 +57,11 @@ TEMP_TEXT_COLOR = (0, 0, 0)
 TEMP_START_POS = (END_POS[0]+2, END_POS[1]-36)
 TEMP_END_POS   = (TEMP_START_POS[0]+70+6, END_POS[1])
 
+# 温度テキスト垂直位置オフセット（背景の下端から離す距離）
+TEMP_TEXT_OFFSET_Y = 6
 # 温度テキスト座標
-#TEMP_POS = (480, 360 - TEXT_VERTICAL_OFFSET)
-TEMP_POS = (TEMP_START_POS[0]+2, TEMP_END_POS[1] - TEXT_VERTICAL_OFFSET)
+#TEMP_POS = (480, 360 - TEMP_TEXT_OFFSET_Y)
+TEMP_POS = (TEMP_START_POS[0]+2, TEMP_END_POS[1] - TEMP_TEXT_OFFSET_Y)
 
 
 #温度OK/NGしきい値
@@ -77,13 +79,13 @@ AVERAGE_COUNT = 4
 
 # ------------------------------
 # 顔サイズチェック
-# Input  : rect_2, rect_3
+# Input  : rect
 # Return : bodyTemp
 # ------------------------------
-def check_face_size(rect_2, rect_3):
-  if rect_2 < 200 or rect_3 < 320:
+def check_face_size(rect):
+  if rect[2] < 200 or rect[3] < 320:
     bodyTemp = GetBodyTempData.getTempData2(sensordata, False, None) # センサ温度の補正
-  elif rect_2 > 400 or rect_3 > 420:
+  elif rect[2] > 400 or rect[3] > 420:
     bodyTemp = GetBodyTempData.getTempData2(sensordata, False, None) # センサ温度の補正
   else:
     bodyTemp = GetBodyTempData.getTempData2(sensordata, True, rect) # 体温取得 ＆ センサ温度の補正
@@ -129,7 +131,7 @@ def face_detect_on(camera_img, BodyTempIndex, SeqCount, msgPos, text_bg_color):
     if len(facerect) == 1:
         rect = facerect[0]
         #　顔サイズチェック
-        bodyTemp = check_face_size(rect[2], rect[3])
+        bodyTemp = check_face_size(rect)
 
         #計測不可表示(顔をカメラに近づけてください又は顔をカメラから離してください)
         if bodyTemp == 0:
