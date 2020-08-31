@@ -12,6 +12,10 @@ colorbar_height = thermo_height
 # 合成位置オフセット
 comp_ofst_x = 5
 
+# カメラ解像度
+resolution_width = 640
+resolution_height = 480
+
 if os.path.exists('Setting.ini'):
     config_ini = configparser.ConfigParser()
     config_ini.read('Setting.ini', encoding='utf-8')

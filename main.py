@@ -15,7 +15,7 @@ from text_jp import putJapaneseText
 
 # 枠色 BGR
 COLOR_NONE = [220, 245, 245]
-COLOR_WAIT = [255, 0, 0]
+COLOR_WAIT = [255, 255, 0]
 COLOR_OK   = [0, 255, 0]
 COLOR_NG   = [0, 0, 255]
 COLOR_FRAME = [0, 0, 0]
@@ -281,7 +281,7 @@ try:
         sensor = amg88sensor.InitSensor( setting.debug )
 
         # カメラ初期化
-        camera = raspicamera.InitCamera( setting.debug )
+        camera = raspicamera.InitCamera( setting.resolution_width, setting.resolution_height, setting.debug )
     # Sim
     else:
         print('start dispsim ---')
