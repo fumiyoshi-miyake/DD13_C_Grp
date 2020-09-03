@@ -6,14 +6,18 @@ import setting
 import module
 import GetBodyTempData
 
-from dispsim import *
+USE_PYGAME = 0  # [1:Pygame, 0:OpenCV]
+if USE_PYGAME:
+    from pygame_util import *
+else:
+    from dispsim import *
 
 from thermo_color import make_colorbar
 from calc import measure
 from calc import AVERAGE_COUNT
 
 
-
+    
 
 # 初期化
 BodyTempArray = [0] * AVERAGE_COUNT
@@ -56,7 +60,7 @@ try:
  
     # 実機/Sim 共通
     # ウィンドウ開く
-    open_disp_machine()
+    open_disp()
 
     #顔検出機能ON
     if setting.face_detect:
@@ -91,8 +95,12 @@ try:
                 BodyTempIndex, SeqCount, img = measure(colorbar_img, camera_img, sensordata,\
                                                        BodyTempArray, BodyTempIndex, SeqCount)
 
+                if USE_PYGAME:
+                    # OpenCV_data → Pygame_data
+                    img = convert_opencv_img_to_pygame(img)
+
                 # 結果の画像を表示する
-                disp_ret = dispsim(img)
+                disp_ret = out_disp(img)
 
                 # カメラから読み込んだ映像を破棄する
                 stream.seek(0)
@@ -115,8 +123,6 @@ try:
         while(True):
             #0.1秒のスリープ
             time.sleep(.1)
-            #時間表示
-            #print(time.time())
 
             #センサから温度データ取得
             sensordata = module.readTemp()
@@ -131,20 +137,26 @@ try:
             BodyTempIndex, SeqCount, img = measure(colorbar_img, pic, sensordata,\
                                                    BodyTempArray, BodyTempIndex, SeqCount)
 
+            if USE_PYGAME:
+                # OpenCV_data → Pygame_data
+                img = convert_opencv_img_to_pygame(img)
+
             # 画像出力
-            disp_ret = dispsim(img)
+            disp_ret = out_disp(img)
 
             #　出力失敗の場合または閉じるボタン押下の時は終了する
             if disp_ret == False:
                 exit()
 
+
 #’Ctrl+C’を受け付けると終了
 except KeyboardInterrupt:
     print("done")
 
-    if setting.mode == 0:
-        # 表示したウィンドウを閉じる
-        cv2.destroyAllWindows()
+    # 表示したウィンドウを閉じる
+    close_disp()
 
+    if setting.mode == 0:
         # カメラ終了
         camera.close()
+        
