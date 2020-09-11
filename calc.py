@@ -1,13 +1,8 @@
 # calc.py : 
 
-import cv2
+import cv2  # face_detect_on のみで使用
 import setting
 import GetBodyTempData
-
-from thermo_color import make_thermograph
-from comp_img import comp_thermo
-from text_jp import putJapaneseText
-
 
 
 # 枠色 BGR
@@ -90,20 +85,6 @@ def check_face_size(rect, sensordata):
 
 
 # ------------------------------
-# 体温描画
-# Input : camera_img = カメラ画像データ
-#       : body_temp  = 体温
-#       : text_bg_color = status文字列背景 
-# ------------------------------
-def draw_temp(camera_img, body_temp, text_bg_color):
-  cv2.rectangle(camera_img, TEMP_START_POS, TEMP_END_POS, text_bg_color, thickness=-1)
-  cv2.putText(camera_img, "{:.1f}".format(body_temp), TEMP_POS,\
-              cv2.FONT_HERSHEY_SIMPLEX, 1.0, TEMP_TEXT_COLOR, thickness=2)
-
-  return
-
-
-# ------------------------------
 # 顔検出On
 # Input  : camera_img    = カメラ画像データ
 #        : sensordata    = サーモセンサデータ
@@ -126,6 +107,9 @@ def face_detect_on(camera_img, sensordata, BodyTempArray, BodyTempIndex, SeqCoun
     msgStr = '枠内に顔を合わせてください'
     msgPos = (124, STATUS_TEXT_POS_Y)  # ステータステキスト表示位置
     text_bg_color = COLOR_NONE
+
+    # 表示用体温（平均値未取得時=0）
+    bodyTempAve = 0
 
     # 顔が１つ検出
     if len(facerect) == 1:
@@ -165,8 +149,6 @@ def face_detect_on(camera_img, sensordata, BodyTempArray, BodyTempIndex, SeqCoun
                 text_bg_color = COLOR_OK  # status文字列背景色
 
             msgPos = STATUS_TEXT_OK_NG_POS  # ステータステキスト表示位置
-            # 体温描画
-            draw_temp(camera_img, bodyTempAve, text_bg_color)
 
     # 顔が検出されなかった場合or複数検出された場合
     else:
@@ -178,21 +160,21 @@ def face_detect_on(camera_img, sensordata, BodyTempArray, BodyTempIndex, SeqCoun
         msgPos = (124, STATUS_TEXT_POS_Y)  # ステータステキスト表示位置
         text_bg_color = [255, 255, 255]  # status文字列背景色
 
-    return BodyTempIndex, SeqCount, msgStr, msgPos, text_bg_color
+    return BodyTempIndex, SeqCount, msgStr, msgPos, text_bg_color, round(bodyTempAve, 1)
 
 
 # ------------------------------
 # 顔検出Off
-# Input  : camera_img    = カメラ画像データ
-#        : sensordata    = サーモセンサデータ
+# Input  : sensordata    = サーモセンサデータ
 #        : BodyTempArray = 体温データ
 #        : BodyTempIndex, SeqCount,
 # Return : BodyTempIndex, SeqCount,
 #        : msgStr        = ステータス表示文字列
 #        : msgPos        = ステータス表示文字列位置
 #        : text_bg_color = 文字列背景色
+#        : bodyTempAve   = 平均体温
 # ------------------------------
-def face_detect_off(camera_img, sensordata, BodyTempArray, BodyTempIndex, SeqCount):
+def face_detect_off(sensordata, BodyTempArray, BodyTempIndex, SeqCount):
     # 温度データから体温取得 第二引数は顔検出結果の有無。
     # 顔検出機能OFFの場合はTrue固定。
     bodyTemp = GetBodyTempData.getTempData(sensordata, True)
@@ -201,6 +183,9 @@ def face_detect_off(camera_img, sensordata, BodyTempArray, BodyTempIndex, SeqCou
     msgStr = '手首の内側を枠に合わせてください'
     msgPos = (80, STATUS_TEXT_POS_Y)
     text_bg_color = COLOR_NONE
+    
+    # 表示用体温（平均値未取得時=0）
+    bodyTempAve = 0
 
     if bodyTemp == 0:
         #計測不可表示
@@ -237,50 +222,29 @@ def face_detect_off(camera_img, sensordata, BodyTempArray, BodyTempIndex, SeqCou
 
         msgPos = STATUS_TEXT_OK_NG_POS  # ステータステキスト表示位置
 
-        # 体温描画
-        draw_temp(camera_img, bodyTempAve, text_bg_color)
-
-    return BodyTempIndex, SeqCount, msgStr, msgPos, text_bg_color
-    
+    # 体温は小数第2位を四捨五入
+    return BodyTempIndex, SeqCount, msgStr, msgPos, text_bg_color, round(bodyTempAve, 1)
 
 
 # ------------------------------
 # 測定
-# Input  : colorbar_img  = カラーバー画像データ
-#        : camera_img    = カメラ画像データ
+# Input  : camera_img    = カメラ画像データ
 #        : sensordata    = サーモセンサデータ
 #        : BodyTempArray = 体温データ
 #        : BodyTempIndex, SeqCount,
-# Return : BodyTempIndex, SeqCount, img,
+# Return : BodyTempIndex, SeqCount, msgStr, msgPos, text_bg_color, body_temp
 # ------------------------------
-def measure(colorbar_img, camera_img, sensordata, BodyTempArray, BodyTempIndex, SeqCount):
+def measure(camera_img, sensordata, BodyTempArray, BodyTempIndex, SeqCount):
     #顔検出機能ON
     if setting.face_detect:
-        BodyTempIndex, SeqCount, msgStr, msgPos, text_bg_color = \
+        BodyTempIndex, SeqCount, msgStr, msgPos, text_bg_color, body_temp = \
             face_detect_on(camera_img, sensordata, BodyTempArray, BodyTempIndex, SeqCount)
 
     # 顔検出機能OFF
     else:
-        BodyTempIndex, SeqCount, msgStr, msgPos, text_bg_color = \
-            face_detect_off(camera_img, sensordata, BodyTempArray, BodyTempIndex, SeqCount)
+        BodyTempIndex, SeqCount, msgStr, msgPos, text_bg_color, body_temp = \
+            face_detect_off(sensordata, BodyTempArray, BodyTempIndex, SeqCount)
 
-    # status文字列背景描画
-    cv2.rectangle(camera_img, STATUS_START_POS, STATUS_END_POS, text_bg_color, thickness=-1)
-                        
-    # センサ範囲矩形描画
-    cv2.rectangle(camera_img, START_POS, END_POS, COLOR_NONE, thickness=2)            
+    return BodyTempIndex, SeqCount, msgStr, msgPos, text_bg_color, body_temp
 
-    # サーモグラフィ画像作成
-    thermo_img = make_thermograph(sensordata, setting.colorbar_min, setting.colorbar_max,\
-                                  setting.thermo_width, setting.thermo_height)
-
-    # サーモグラフィ画像合成
-    img = comp_thermo(camera_img, colorbar_img, thermo_img, setting.comp_ofst_x, setting.comp_ofst_y)
-
-    #msg(日本語文字)合成
-    if msgStr != '':
-        img = putJapaneseText(img, msgStr, msgPos, STATUS_TEXT_COLOR)
-
-
-    return BodyTempIndex, SeqCount, img
 
