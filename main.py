@@ -6,17 +6,15 @@ import setting
 import module
 import GetBodyTempData
 
-USE_PYGAME = 0  # [1:Pygame, 0:OpenCV]
-if USE_PYGAME:
-    from pygame_util import *
-else:
-    from dispsim import *
+#from pygame_util import *
+from pygame_util import open_disp
+from pygame_util import make_colorbar
+from pygame_util import convert_opencv_img_to_pygame
+from pygame_util import out_disp
+from pygame_util import close_disp
 
-from thermo_color import make_colorbar
 from calc import measure
 from calc import AVERAGE_COUNT
-
-
     
 
 # 初期化
@@ -41,10 +39,6 @@ else:
 
 
 try:
-    # 実機/Sim 共通
-    # カラーバー画像作成
-    colorbar_img = make_colorbar(setting.colorbar_min, setting.colorbar_max,\
-                                 setting.colorbar_width, setting.colorbar_height)
 
     # 実機
     if setting.mode == 0:
@@ -61,6 +55,10 @@ try:
     # 実機/Sim 共通
     # ウィンドウ開く
     open_disp()
+
+    # カラーバー画像作成
+    colorbar_img = make_colorbar(setting.colorbar_min, setting.colorbar_max,\
+                                 setting.colorbar_width, setting.colorbar_height)
 
     #顔検出機能ON
     if setting.face_detect:
@@ -92,15 +90,14 @@ try:
                 camera_img = stream.array.copy()
 
                 # 測定
-                BodyTempIndex, SeqCount, img = measure(colorbar_img, camera_img, sensordata,\
-                                                       BodyTempArray, BodyTempIndex, SeqCount)
+                BodyTempIndex, SeqCount, msgStr, msgPos, text_bg_color, bodyTemp = \
+                    measure(camera_img, sensordata, BodyTempArray, BodyTempIndex, SeqCount)
 
-                if USE_PYGAME:
-                    # OpenCV_data → Pygame_data
-                    img = convert_opencv_img_to_pygame(img)
+                # OpenCV_data → Pygame_data
+                img = convert_opencv_img_to_pygame(img)
 
                 # 結果の画像を表示する
-                disp_ret = out_disp(img)
+                disp_ret = out_disp(img, colorbar_img, msgStr, msgPos, text_bg_color, bodyTemp, sensordata)
 
                 # カメラから読み込んだ映像を破棄する
                 stream.seek(0)
@@ -134,15 +131,14 @@ try:
             pic = module.readPic()
 
             # 測定
-            BodyTempIndex, SeqCount, img = measure(colorbar_img, pic, sensordata,\
-                                                   BodyTempArray, BodyTempIndex, SeqCount)
+            BodyTempIndex, SeqCount, msgStr, msgPos, text_bg_color, bodyTemp = \
+                measure(pic, sensordata, BodyTempArray, BodyTempIndex, SeqCount)
 
-            if USE_PYGAME:
-                # OpenCV_data → Pygame_data
-                img = convert_opencv_img_to_pygame(img)
+            # OpenCV_data → Pygame_data
+            img = convert_opencv_img_to_pygame(pic)
 
             # 画像出力
-            disp_ret = out_disp(img)
+            disp_ret = out_disp(img, colorbar_img, msgStr, msgPos, text_bg_color, bodyTemp, sensordata)
 
             #　出力失敗の場合または閉じるボタン押下の時は終了する
             if disp_ret == False:
