@@ -4,19 +4,31 @@ import csv
 import setting
 
 if setting.mode == 1 :
-    #シュミレート用のサーモセンサーデータ 
-    sensor_file = "sensorData.csv"
-    #シュミレート用サーモセンサデータの読み込み対象データ（10パターンを周期的に読み込む）
+    #シュミレート用サーモセンサデータの読み込み対象データ（8パターンを周期的に読み込む）
     snsor_data_count = 0
-    #サーモセンサーデータ数
-    sensorCount = 64 
-    #サーモセンサーのデータ配列
-    temperature = [[0]*8]*8
+
+    if setting.sensor == 0:
+        #シュミレート用の8×8サーモセンサーデータ 
+        sensor_file = "sensorData.csv"
+        #8×8センサー
+        temperature = [[0]*8]*8
+        #1パターンあたりの行数,列数
+        row_count=8
+        col_count=8
+
+    else:
+        #シュミレート用の80×60サーモセンサーデータ 
+        sensor_file = "sensorDataLepton.csv"
+        #80×60センサー
+        temperature = [[0]*80]*60
+        #1パターンあたりの行数,列数
+        row_count=60
+        col_count=80
 
     #シュミレート用の画像データ 
     pic_list = ["picture0.jpg", "picture1.jpg", "picture2.jpg", "picture3.jpg", "picture4.jpg", "picture5.jpg", "picture6.jpg", "picture7.jpg", "picture8.jpg", "picture9.jpg"]
 
-    #シュミレート用画像データの読み込み対象データ（10パターンを周期的に読み込む）
+    #シュミレート用画像データの読み込み対象データ（8パターンを周期的に読み込む）
     pic_data_count = 0
 
     #サーモセンサーのデータ読み込み
@@ -26,8 +38,8 @@ if setting.mode == 1 :
             with open(sensor_file) as f:
                 sensorData = [row for row in csv.reader(f)]
         
-            #8×8のデータを取得
-            for row in range(8):
+            #1パターンのデータを取得
+            for row in range(row_count):
                 l_sf = sensorData[snsor_data_count * 8 + row]
                 l_sf_f = [float(s) for s in l_sf]
                 temperature[row] = l_sf_f

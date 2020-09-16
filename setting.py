@@ -3,13 +3,16 @@ import configparser
 
 
 # 動作環境( 0:実機, 1:シュミレータ )
-mode = 0
+mode = 1
 
 # デバッグ出力( OFF:0, ON:1 )
 debug = 0
 
+# センサー( 8×8:0, Lepton80×60:1 )
+sensor = 1
+
 # 顔検知( OFF:0, ON:1 )
-face_detect = 0
+face_detect = 1
 
 # カラーグラデーション最小最大値
 colorbar_min = 30.0

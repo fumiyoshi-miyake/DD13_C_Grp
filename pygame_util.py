@@ -251,7 +251,7 @@ def out_disp(img, colorbar_img, status_text, status_pos, bg_color, body_temp, se
     _screen_pygame.blit(thermo_img, (setting.comp_ofst_x+20, setting.comp_ofst_y))
 
     # センサ範囲矩形描画
-    pygame.draw.rect(_screen_pygame, COLOR_SENSOR, SENSOR_RECT, width = 2)  # 枠線
+    pygame.draw.rect(_screen_pygame, COLOR_SENSOR, SENSOR_RECT, 2)  # 枠線
 
 
     # ステータス表示

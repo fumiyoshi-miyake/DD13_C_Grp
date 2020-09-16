@@ -67,6 +67,11 @@ MIN_SIZE = (80,80)
 # 体温データの平均回数
 AVERAGE_COUNT = 4
 
+#顔検出機能ON
+if setting.face_detect:
+    # 顔検出のための学習元データを読み込む
+    face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
+
 # ------------------------------
 # 顔サイズチェック
 # Input  : rect
@@ -74,9 +79,9 @@ AVERAGE_COUNT = 4
 # Return : bodyTemp
 # ------------------------------
 def check_face_size(rect, sensordata):
-  if rect[2] < 200 or rect[3] < 320:
+  if rect[2] < 10 or rect[3] < 10:
     bodyTemp = GetBodyTempData.getTempData2(sensordata, False, None) # センサ温度の補正
-  elif rect[2] > 400 or rect[3] > 420:
+  elif rect[2] > 1000 or rect[3] > 1000:
     bodyTemp = GetBodyTempData.getTempData2(sensordata, False, None) # センサ温度の補正
   else:
     bodyTemp = GetBodyTempData.getTempData2(sensordata, True, rect) # 体温取得 ＆ センサ温度の補正
@@ -176,11 +181,23 @@ def face_detect_on(camera_img, sensordata, BodyTempArray, BodyTempIndex, SeqCoun
 # ------------------------------
 def face_detect_off(sensordata, BodyTempArray, BodyTempIndex, SeqCount):
     # 温度データから体温取得 第二引数は顔検出結果の有無。
-    # 顔検出機能OFFの場合はTrue固定。
-    bodyTemp = GetBodyTempData.getTempData(sensordata, True)
+    
+    if setting.sensor == 0:
+        #8×8センサー
+        # 顔検出機能OFFの場合はTrue固定。
+        bodyTemp = GetBodyTempData.getTempData(sensordata, True)
 
-    # ステータスメッセージ初期値
-    msgStr = '手首の内側を枠に合わせてください'
+        # ステータスメッセージ初期値
+        msgStr = '手首の内側を枠に合わせてください'
+
+    else:
+        #80×60センサー
+        # 顔検出機能OFFの場合はTrue固定。
+        bodyTemp = GetBodyTempData.getTempDataLepton(sensordata, True)
+
+        # ステータスメッセージ初期値
+        msgStr = '顔を枠に合わせてください'
+
     msgPos = (80, STATUS_TEXT_POS_Y)
     text_bg_color = COLOR_NONE
     

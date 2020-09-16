@@ -60,12 +60,6 @@ try:
     colorbar_img = make_colorbar(setting.colorbar_min, setting.colorbar_max,\
                                  setting.colorbar_width, setting.colorbar_height)
 
-    #顔検出機能ON
-    if setting.face_detect:
-        # 顔検出のための学習元データを読み込む
-        face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
-        
-
     # 実機
     if setting.mode == 0:
         # カメラの画像をリアルタイムで取得するための処理(streamがメモリー上の画像データ)
