@@ -23,16 +23,28 @@ resolution_width = 640
 resolution_height = 480
 
 
-# サーモグラフィ画像サイズ, 正方形,
-thermo_height = 120
-thermo_width = thermo_height
+# サーモグラフィ画像サイズ,
+if sensor == 0:
+    thermo_height = 120
+    thermo_width = thermo_height  # 正方形
+else:
+    thermo_height = 90
+    thermo_width = int(thermo_height/3*4)  # 4:3
 
-# カラーバー画像サイズ, 縦幅はサーモグラフィ画像に合わせる,
+# カラーバー画像サイズ,
 colorbar_width = 20
-colorbar_height = thermo_height
 
-# サーモグラフィ合成位置オフセット（画面左下端からの距離）
+if sensor == 0:
+    # 縦幅はサーモグラフィ画像に合わせる,
+    colorbar_height = thermo_height
+else:
+    colorbar_height = thermo_height  # ★仮★
+
+# サーモグラフィ合成位置オフセット (画面左下端からの距離)
 comp_ofst_x = 5
-comp_ofst_y = resolution_height - thermo_height - comp_ofst_x - 20
+if sensor == 0:
+    comp_ofst_y = resolution_height - thermo_height - comp_ofst_x - 20
+else:
+    comp_ofst_y = resolution_height - thermo_height - comp_ofst_x
 
 
