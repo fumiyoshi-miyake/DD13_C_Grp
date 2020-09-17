@@ -29,7 +29,6 @@ SENSOR_RECT = (START_POS, (END_POS[0]-START_POS[0], END_POS[1]-START_POS[1]))
 #STATUS_END_POS   = (564, 79)
 STATUS_START_POS = (72, START_POS[1]-42)
 #STATUS_END_POS   = (564, START_POS[1]-2)
-#STATUS_RECT = (STATUS_START_POS[0], STATUS_START_POS[1], STATUS_END_POS[0], STATUS_END_POS[1])
 STATUS_RECT = (STATUS_START_POS, (492, 40))
 
 # 温度テキスト背景座標
@@ -146,7 +145,7 @@ def make_colorbar(min, max, width, height):
 # ------------------------------
 def make_thermograph(input_data, sensor_width, sensor_height, min, max, width, height):
     # 3次元RGBデータ（RGB値の二次元配列）
-    rgb_array = [[[0]*3 for i in range(sensor_width)] for x in range(sensor_height)]
+    rgb_array = [[[0]*3 for i in range(sensor_height)] for x in range(sensor_width)]
 
     # 入力データ → RGB配列データ
     thermo2rgb(input_data, sensor_width, sensor_height, min, max, rgb_array)
@@ -241,9 +240,13 @@ def out_disp(img, colorbar_img, status_text, status_pos, bg_color, body_temp, se
         return False
 
     # サーモグラフィ画像作成,
-    # 引数にセンサ数を追加, 8x8固定(仮)
-    thermo_img = make_thermograph(sensor_data, 8, 8, setting.colorbar_min, setting.colorbar_max,\
-                                  setting.thermo_width, setting.thermo_height)
+    if setting.sensor == 0:
+        thermo_img = make_thermograph(sensor_data, 8, 8, setting.colorbar_min, setting.colorbar_max,\
+                                      setting.thermo_width, setting.thermo_height)
+    else:
+        # 新センサ 80x60
+        thermo_img = make_thermograph(sensor_data, 80, 60, setting.colorbar_min, setting.colorbar_max,\
+                                      setting.thermo_width, setting.thermo_height)
 
     # 画像表示
     _screen_pygame.blit(img, (0, 0))
