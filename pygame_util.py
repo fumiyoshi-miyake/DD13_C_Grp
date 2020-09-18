@@ -82,6 +82,9 @@ COLOR_SENSOR = (0, 0, 0)
 COLOR_BUTTON = (196, 196, 196)
 COLOR_BUTTON_FONT = (0, 0, 0)
 
+# 長押し判定用
+_press_count = 0
+
 # ------------------------------
 # xrandr | grep '*'コマンドの実行
 # ------------------------------
@@ -213,6 +216,9 @@ def open_disp():
     button_font = pygame.font.SysFont(FONT_JP, 14)
     _end_button_text = button_font.render('終了', True, COLOR_BUTTON_FONT)
 
+    # マウス非表示化
+    pygame.mouse.set_visible(False)
+
     return
     
 
@@ -250,8 +256,10 @@ def out_disp(img, colorbar_img, status_text, status_pos, bg_color, body_temp, se
 
     # 画像表示
     _screen_pygame.blit(img, (0, 0))
-    _screen_pygame.blit(colorbar_img, (setting.comp_ofst_x, setting.comp_ofst_y))
-    _screen_pygame.blit(thermo_img, (setting.comp_ofst_x+20, setting.comp_ofst_y))
+    if setting.colorbar_width > 0:
+        _screen_pygame.blit(colorbar_img, (setting.comp_ofst_x, setting.comp_ofst_y))
+    if setting.thermo_width > 0:
+        _screen_pygame.blit(thermo_img, (setting.comp_ofst_x+20, setting.comp_ofst_y))
 
     # センサ範囲矩形描画
     pygame.draw.rect(_screen_pygame, COLOR_SENSOR, SENSOR_RECT, 2)  # 枠線
@@ -268,11 +276,12 @@ def out_disp(img, colorbar_img, status_text, status_pos, bg_color, body_temp, se
 
     # ボタン追加 ★仮★
     draw_text_rect(_end_button_text, (5, 4), _end_button, COLOR_BUTTON)
-    #pygame.draw.rect(_screen_pygame, (0, 0, 0), _end_button, width = 1)  # 黒色枠線
 
     # 表示更新
     pygame.display.update()
 
+
+    global _press_count
     # イベント取得
     for event in pygame.event.get():
         # 閉じるボタンが押された時の処理
@@ -285,6 +294,21 @@ def out_disp(img, colorbar_img, status_text, status_pos, bg_color, body_temp, se
             if _end_button.collidepoint(event.pos):
                 pygame.quit()
                 return False
+                
+        elif event.type == pygame.MOUSEBUTTONUP:
+            # 長押しカウントクリア
+            _press_count = 0
+
+
+    # 長押し判定
+    mouse_pressed = pygame.mouse.get_pressed()
+    if mouse_pressed[0]:
+        _press_count += 1
+        if _press_count > 10:   # 一定のカウント以上で長押しと判定
+            print('長押し検出！')
+            pygame.quit()  # 仮で終了処理を入れておく
+            return False            
+
 
     return True
 
