@@ -12,7 +12,10 @@ debug = 0
 sensor = 1
 
 # 顔検知( OFF:0, ON:1 )
-face_detect = 1
+face_detect = 0
+
+# 測定モード( 顔:0, 手首:1 ) sensor = 0 且つ face_detect = 0 の時のみ有効
+measure_mode = 0
 
 # カラーグラデーション最小最大値
 colorbar_min = 30.0

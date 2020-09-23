@@ -19,8 +19,19 @@ READ_ERR_IMAGE = 'read_err_image.jpg'
 WIN_NAME = 'C_Grp'  # (仮)
 
 # センサー座標
-START_POS = (200, 80)
-END_POS = (440, 420)
+if setting.sensor == 0:
+    if setting.measure_mode == 0:
+        # 顔
+        START_POS = (180, 80)
+        END_POS = (460, 340)
+    else:
+        # 手首
+        START_POS = (200, 80)
+        END_POS = (440, 420)
+else:
+    START_POS = (220, 80)
+    END_POS = (420, 280)
+
 #SENSOR_RECT = (START_POS[0], START_POS[1], END_POS[0], END_POS[1])
 SENSOR_RECT = (START_POS, (END_POS[0]-START_POS[0], END_POS[1]-START_POS[1]))
 
@@ -235,7 +246,7 @@ def close_disp():
 # Input : img = 入力画像(pygame_img)
 #       : body_temp = 体温
 # ------------------------------
-def out_disp(img, colorbar_img, status_text, status_pos, bg_color, body_temp, sensor_data):
+def out_disp(img, colorbar_img, status_text, status_pos, bg_color, body_temp, sensor_data, face_rect):
     if img is None:
         # 指定パスの画像がない場合は既定ファイルを読み込む
         img = pygame.image.load(READ_ERR_IMAGE)
@@ -261,9 +272,13 @@ def out_disp(img, colorbar_img, status_text, status_pos, bg_color, body_temp, se
     if setting.thermo_width > 0:
         _screen_pygame.blit(thermo_img, (setting.comp_ofst_x+20, setting.comp_ofst_y))
 
-    # センサ範囲矩形描画
-    pygame.draw.rect(_screen_pygame, COLOR_SENSOR, SENSOR_RECT, 2)  # 枠線
+    if setting.face_detect == 0:
+        # センサ範囲矩形描画
+        pygame.draw.rect(_screen_pygame, COLOR_SENSOR, SENSOR_RECT, 2)  # 枠線
 
+    # 顔枠表示 顔検出時
+    if face_rect[2] != 0:
+        pygame.draw.rect(_screen_pygame, bg_color, face_rect, 2)  # 枠線
 
     # ステータス表示
     _status_text = _status_font.render(status_text, True, COLOR_TEXT)
@@ -272,8 +287,21 @@ def out_disp(img, colorbar_img, status_text, status_pos, bg_color, body_temp, se
     # 体温表示
     if body_temp != 0:
         _body_temp_text = _body_temp_font.render(str(body_temp), True, COLOR_TEXT)
-        draw_text_rect(_body_temp_text, (TEMP_START_POS[0]+5,TEMP_START_POS[1]+2), _body_temp_rect, bg_color)
+        if setting.face_detect == 0:
+            draw_text_rect(_body_temp_text, (TEMP_START_POS[0]+5,TEMP_START_POS[1]+2), _body_temp_rect, bg_color)
+        else:
+            # 右端チェック はみ出す場合は左側に表示 +100はテキストサイズ＋オフセット
+            if face_rect[0]+face_rect[2] + 100 > 640:
+                TempStartPos = (face_rect[0]-76, face_rect[1]+face_rect[3] - 40)
+            else:
+                TempStartPos = (face_rect[0]+face_rect[2], face_rect[1]+face_rect[3] - 40)
 
+            # 温度背景テキスト位置セット
+            TempRect = (TempStartPos, (76, 36))
+            bodyTempRect = pygame.Rect(TempRect)
+            draw_text_rect(_body_temp_text, TempStartPos, bodyTempRect, bg_color)
+            
+            
     # ボタン追加 ★仮★
     draw_text_rect(_end_button_text, (5, 4), _end_button, COLOR_BUTTON)
 
