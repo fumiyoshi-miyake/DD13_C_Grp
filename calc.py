@@ -5,11 +5,11 @@ import setting
 import GetBodyTempData
 
 
-# 枠色 BGR
-COLOR_NONE = [220, 245, 245]
-COLOR_WAIT = [255, 255, 0]
+# 枠色 RGB
+COLOR_NONE = [245, 245, 220]
+COLOR_WAIT = [0, 255, 255]
 COLOR_OK   = [0, 255, 0]
-COLOR_NG   = [0, 0, 255]
+COLOR_NG   = [255, 0, 0]
 COLOR_FRAME = [0, 0, 0]
 COLOR_TEXT_BACK = [255, 255, 255]
 
@@ -79,12 +79,12 @@ if setting.face_detect:
 # Return : bodyTemp
 # ------------------------------
 def check_face_size(rect, sensordata):
-  if rect[2] < 10 or rect[3] < 10:
-    bodyTemp = GetBodyTempData.getTempData2(sensordata, False, None) # センサ温度の補正
-  elif rect[2] > 1000 or rect[3] > 1000:
-    bodyTemp = GetBodyTempData.getTempData2(sensordata, False, None) # センサ温度の補正
+  if rect[2] < 70 or rect[3] < 70:
+    bodyTemp = GetBodyTempData.getTempDataFaceDetOn(sensordata, False, None) # センサ温度の補正
+  elif rect[2] > 500 or rect[3] > 500:
+    bodyTemp = GetBodyTempData.getTempDataFaceDetOn(sensordata, False, None) # センサ温度の補正
   else:
-    bodyTemp = GetBodyTempData.getTempData2(sensordata, True, rect) # 体温取得 ＆ センサ温度の補正
+    bodyTemp = GetBodyTempData.getTempDataFaceDetOn(sensordata, True, rect) # 体温取得 ＆ センサ温度の補正
 
   return bodyTemp
 
@@ -109,18 +109,20 @@ def face_detect_on(camera_img, sensordata, BodyTempArray, BodyTempIndex, SeqCoun
                                              minNeighbors=MIN_NIGHBORS, minSize=MIN_SIZE)
 
     # ステータスメッセージ初期値
-    msgStr = '枠内に顔を合わせてください'
+    msgStr = '体温を測定します'
     msgPos = (124, STATUS_TEXT_POS_Y)  # ステータステキスト表示位置
     text_bg_color = COLOR_NONE
 
     # 表示用体温（平均値未取得時=0）
     bodyTempAve = 0
 
+    face_rect = [0,0,0,0]
+
     # 顔が１つ検出
     if len(facerect) == 1:
-        rect = facerect[0]
+        face_rect = facerect[0]
         #　顔サイズチェック
-        bodyTemp = check_face_size(rect, sensordata)
+        bodyTemp = check_face_size(face_rect, sensordata)
 
         #計測不可表示(顔をカメラに近づけてください又は顔をカメラから離してください)
         if bodyTemp == 0:
@@ -157,15 +159,15 @@ def face_detect_on(camera_img, sensordata, BodyTempArray, BodyTempIndex, SeqCoun
 
     # 顔が検出されなかった場合or複数検出された場合
     else:
-        GetBodyTempData.getTempData2(sensordata, False, None) # センサ温度の補正
+        GetBodyTempData.getTempDataFaceDetOn(sensordata, False, None) # センサ温度の補正
         #計測不可表示
         BodyTempIndex = 0
         SeqCount = 0
-        msgStr = '枠内に顔を合わせてください'
+        msgStr = '体温を測定します'
         msgPos = (124, STATUS_TEXT_POS_Y)  # ステータステキスト表示位置
         text_bg_color = [255, 255, 255]  # status文字列背景色
 
-    return BodyTempIndex, SeqCount, msgStr, msgPos, text_bg_color, round(bodyTempAve, 1)
+    return BodyTempIndex, SeqCount, msgStr, msgPos, text_bg_color, round(bodyTempAve, 1), face_rect
 
 
 # ------------------------------
@@ -180,22 +182,13 @@ def face_detect_on(camera_img, sensordata, BodyTempArray, BodyTempIndex, SeqCoun
 #        : bodyTempAve   = 平均体温
 # ------------------------------
 def face_detect_off(sensordata, BodyTempArray, BodyTempIndex, SeqCount):
-    # 温度データから体温取得 第二引数は顔検出結果の有無。
+    # 温度データから体温取得
+    bodyTemp = GetBodyTempData.getTempDataFaceDetOff(sensordata)
     
-    if setting.sensor == 0:
-        #8×8センサー
-        # 顔検出機能OFFの場合はTrue固定。
-        bodyTemp = GetBodyTempData.getTempData(sensordata, True)
-
-        # ステータスメッセージ初期値
+    # ステータスメッセージ初期値
+    if setting.sensor == 0 and setting.measure_mode == 1:
         msgStr = '手首の内側を枠に合わせてください'
-
     else:
-        #80×60センサー
-        # 顔検出機能OFFの場合はTrue固定。
-        bodyTemp = GetBodyTempData.getTempDataLepton(sensordata, True)
-
-        # ステータスメッセージ初期値
         msgStr = '顔を枠に合わせてください'
 
     msgPos = (80, STATUS_TEXT_POS_Y)
@@ -249,19 +242,20 @@ def face_detect_off(sensordata, BodyTempArray, BodyTempIndex, SeqCount):
 #        : sensordata    = サーモセンサデータ
 #        : BodyTempArray = 体温データ
 #        : BodyTempIndex, SeqCount,
-# Return : BodyTempIndex, SeqCount, msgStr, msgPos, text_bg_color, body_temp
+# Return : BodyTempIndex, SeqCount, msgStr, msgPos, text_bg_color, body_temp, face_rect
 # ------------------------------
 def measure(camera_img, sensordata, BodyTempArray, BodyTempIndex, SeqCount):
     #顔検出機能ON
     if setting.face_detect:
-        BodyTempIndex, SeqCount, msgStr, msgPos, text_bg_color, body_temp = \
+        BodyTempIndex, SeqCount, msgStr, msgPos, text_bg_color, body_temp, face_rect = \
             face_detect_on(camera_img, sensordata, BodyTempArray, BodyTempIndex, SeqCount)
 
     # 顔検出機能OFF
     else:
         BodyTempIndex, SeqCount, msgStr, msgPos, text_bg_color, body_temp = \
             face_detect_off(sensordata, BodyTempArray, BodyTempIndex, SeqCount)
+        face_rect = [0, 0, 0, 0]
 
-    return BodyTempIndex, SeqCount, msgStr, msgPos, text_bg_color, body_temp
+    return BodyTempIndex, SeqCount, msgStr, msgPos, text_bg_color, body_temp, face_rect
 
 

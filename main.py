@@ -125,14 +125,14 @@ try:
             pic = module.readPic()
 
             # 測定
-            BodyTempIndex, SeqCount, msgStr, msgPos, text_bg_color, bodyTemp = \
+            BodyTempIndex, SeqCount, msgStr, msgPos, text_bg_color, bodyTemp, face_rect = \
                 measure(pic, sensordata, BodyTempArray, BodyTempIndex, SeqCount)
 
             # OpenCV_data → Pygame_data
             img = convert_opencv_img_to_pygame(pic)
 
             # 画像出力
-            disp_ret = out_disp(img, colorbar_img, msgStr, msgPos, text_bg_color, bodyTemp, sensordata)
+            disp_ret = out_disp(img, colorbar_img, msgStr, msgPos, text_bg_color, bodyTemp, sensordata, face_rect)
 
             #　出力失敗の場合または閉じるボタン押下の時は終了する
             if disp_ret == False:
