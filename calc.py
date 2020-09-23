@@ -71,6 +71,25 @@ AVERAGE_COUNT = 4
 if setting.face_detect:
     # 顔検出のための学習元データを読み込む
     face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
+#    face_cascade = cv2.CascadeClassifier('cascade.xml')
+
+# ------------------------------
+# 複数顔から画面中央に一番近い顔を選択
+# Input  : face_rect = 顔検出データ（配列）
+# Return : rect
+# ------------------------------
+def face_select(face_rect):
+    num = len(face_rect)
+    minPos = 560
+    index = 0
+    for i in range(num):
+        cx = face_rect[i][0] + face_rect[i][2] / 2
+        cy = face_rect[i][1] + face_rect[i][3] / 2
+        if minPos > (320 - cx) + (240 - cy):
+            minPos = (320 - cx) + (240 - cy)
+            index = i
+
+    return face_rect[index]
 
 # ------------------------------
 # 顔サイズチェック
@@ -110,7 +129,7 @@ def face_detect_on(camera_img, sensordata, BodyTempArray, BodyTempIndex, SeqCoun
 
     # ステータスメッセージ初期値
     msgStr = '体温を測定します'
-    msgPos = (124, STATUS_TEXT_POS_Y)  # ステータステキスト表示位置
+    msgPos = (204, STATUS_TEXT_POS_Y)  # ステータステキスト表示位置
     text_bg_color = COLOR_NONE
 
     # 表示用体温（平均値未取得時=0）
@@ -118,9 +137,14 @@ def face_detect_on(camera_img, sensordata, BodyTempArray, BodyTempIndex, SeqCoun
 
     face_rect = [0,0,0,0]
 
-    # 顔が１つ検出
-    if len(facerect) == 1:
+    # 顔が複数ある場合は、画面中央に近い１つにする
+    if len(facerect) > 1:
+        face_rect = face_select(facerect)
+    elif len(facerect) == 1:
         face_rect = facerect[0]
+
+    # 顔が１つ以上検出
+    if len(facerect) >= 1:
         #　顔サイズチェック
         bodyTemp = check_face_size(face_rect, sensordata)
 
@@ -159,12 +183,12 @@ def face_detect_on(camera_img, sensordata, BodyTempArray, BodyTempIndex, SeqCoun
 
     # 顔が検出されなかった場合or複数検出された場合
     else:
-        GetBodyTempData.getTempDataFaceDetOn(sensordata, False, None) # センサ温度の補正
+        GetBodyTempData.getTempDataFaceDetOn(sensordata, False, face_rect) # センサ温度の補正
         #計測不可表示
         BodyTempIndex = 0
         SeqCount = 0
         msgStr = '体温を測定します'
-        msgPos = (124, STATUS_TEXT_POS_Y)  # ステータステキスト表示位置
+        msgPos = (204, STATUS_TEXT_POS_Y)  # ステータステキスト表示位置
         text_bg_color = [255, 255, 255]  # status文字列背景色
 
     return BodyTempIndex, SeqCount, msgStr, msgPos, text_bg_color, round(bodyTempAve, 1), face_rect
@@ -188,10 +212,11 @@ def face_detect_off(sensordata, BodyTempArray, BodyTempIndex, SeqCount):
     # ステータスメッセージ初期値
     if setting.sensor == 0 and setting.measure_mode == 1:
         msgStr = '手首の内側を枠に合わせてください'
+        msgPos = (80, STATUS_TEXT_POS_Y)
     else:
         msgStr = '顔を枠に合わせてください'
+        msgPos = (137, STATUS_TEXT_POS_Y)
 
-    msgPos = (80, STATUS_TEXT_POS_Y)
     text_bg_color = COLOR_NONE
     
     # 表示用体温（平均値未取得時=0）

@@ -219,6 +219,8 @@ def getTempDataFaceDetOn(inTemp, isDetFace, rect):
         offset += SIZE_OFFSET_130
     elif rect[2] > 100:
         offset += SIZE_OFFSET_100
+    elif rect[2] == 0:
+        offset += 0    
     else:
         offset += SIZE_OFFSET_ELSE
 
