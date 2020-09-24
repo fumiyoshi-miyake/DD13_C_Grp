@@ -68,10 +68,11 @@ MIN_SIZE = (80,80)
 AVERAGE_COUNT = 4
 
 #顔検出機能ON
-if setting.face_detect:
-    # 顔検出のための学習元データを読み込む
-    face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
-#    face_cascade = cv2.CascadeClassifier('cascade.xml')
+#if setting.face_detect:
+# 顔検出のための学習元データを読み込む
+face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
+#face_cascade = cv2.CascadeClassifier('cascade.xml')
+
 
 # ------------------------------
 # 複数顔から画面中央に一番近い顔を選択
@@ -269,9 +270,9 @@ def face_detect_off(sensordata, BodyTempArray, BodyTempIndex, SeqCount):
 #        : BodyTempIndex, SeqCount,
 # Return : BodyTempIndex, SeqCount, msgStr, msgPos, text_bg_color, body_temp, face_rect
 # ------------------------------
-def measure(camera_img, sensordata, BodyTempArray, BodyTempIndex, SeqCount):
+def measure(camera_img, sensordata, BodyTempArray, BodyTempIndex, SeqCount, face_detect):   
     #顔検出機能ON
-    if setting.face_detect:
+    if face_detect == 1:
         BodyTempIndex, SeqCount, msgStr, msgPos, text_bg_color, body_temp, face_rect = \
             face_detect_on(camera_img, sensordata, BodyTempArray, BodyTempIndex, SeqCount)
 
