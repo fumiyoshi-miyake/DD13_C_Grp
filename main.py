@@ -116,8 +116,9 @@ try:
             #print(*sensordata, sep='\n')
             #print('--------------------------')
 
-            # 自動キャリブレーション
-            GetBodyTempData.setOffsetTempData(sensordata)
+            # 自動キャリブレーション Leptonは未調整
+            if setting.sensor == 0:
+                GetBodyTempData.setOffsetTempData(sensordata)
 
             # カメラから映像を取得する
             camera_img = camera.capture()
