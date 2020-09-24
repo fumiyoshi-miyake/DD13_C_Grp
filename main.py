@@ -31,33 +31,35 @@ BodyTempIndex = 0
 SeqCount = 0
 service_mode_on = False
 
-face_detect = setting.face_detect
+#face_detect = setting.face_detect
+# サービスモード設定ファイル読み込み
+face_detect, thermo_size, thermo_pos, thermo_max, thermo_min, thermo_threshold = read_service_csv()
 
 
 # 実機
 if setting.mode == 0:
     # 公開ライブラリ又はファイルインポート
-    if face_detect == 0:
-        # 顔検知OFF
-        import pygame
-        import pygame.camera
-        from pygame.locals import *
-    else:
-        # 顔検知ON
-        import picamera
-        import picamera.array
+    #if face_detect == 0:
+    # 顔検知OFF
+    import pygame
+    import pygame.camera
+    from pygame.locals import *
+    #else:
+    # 顔検知ON
+    import picamera
+    import picamera.array
 
     if setting.sensor == 0:
         # AMG88センサ
         import adafruit_amg88xx 
 
     # ローカルファイルインポート
-    if face_detect == 0:
-        # 顔検知OFF
-        import pygame_camera
-    else:
-        # 顔検知ON
-        import raspicamera
+    #if face_detect == 0:
+    # 顔検知OFF
+    import pygame_camera
+    #else:
+    # 顔検知ON
+    import raspicamera
 
     if setting.sensor == 0:
         # AMG88センサ
@@ -165,8 +167,26 @@ try:
 
             # サービスモード起動時
             if service_mode_on:
+                before_face_detect = face_detect
                 open_service_mode()
-                print('close_service_mode')
+                # サービスモード設定ファイル読み込み
+                face_detect, thermo_size, thermo_pos, thermo_max, thermo_min, thermo_threshold = read_service_csv()
+
+                # 顔検出モードが変更していたらカメラを切り替える
+                if face_detect != before_face_detect:
+                    # カメラ終了
+                    camera.close()
+
+                    # カメラ初期化
+                    if face_detect == 0:
+                        # 顔検知OFF
+                        camera = pygame_camera.Camera(setting.resolution_width, \
+                                    setting.resolution_height, setting.debug)
+                    else:
+                        # 顔検知ON
+                        camera = raspicamera.Camera(setting.resolution_width, \
+                                    setting.resolution_height, setting.debug)
+                    
                 service_mode_on = False
 
     #シュミレーター
@@ -203,7 +223,7 @@ try:
             # サービスモード起動時
             if service_mode_on:
                 open_service_mode()
-                print('close_service_mode')
+                # サービスモード設定ファイル読み込み
                 face_detect, thermo_size, thermo_pos, thermo_max, thermo_min, thermo_threshold = read_service_csv()
 
                 service_mode_on = False
