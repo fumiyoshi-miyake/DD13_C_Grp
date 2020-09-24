@@ -144,6 +144,8 @@ try:
 
             #　出力失敗の場合または閉じるボタン押下の時は終了する
             if disp_ret == False:
+                # センサ終了
+                sensor.close()
                 # カメラ終了
                 camera.close()
                 exit()
@@ -175,10 +177,6 @@ try:
 
             #　出力失敗の場合または閉じるボタン押下の時は終了する
             if disp_ret == False:
-                # センサ終了
-                sensor.close()
-                # カメラ終了
-                camera.close()
                 exit()
 
 
