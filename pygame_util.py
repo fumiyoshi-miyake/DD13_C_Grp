@@ -31,7 +31,7 @@ if setting.sensor == 0:
 else:
     START_POS = (220, 80)
     END_POS = (420, 280)
-
+    
 #SENSOR_RECT = (START_POS[0], START_POS[1], END_POS[0], END_POS[1])
 SENSOR_RECT = (START_POS, (END_POS[0]-START_POS[0], END_POS[1]-START_POS[1]))
 
@@ -69,9 +69,6 @@ _body_temp_font = None
 
 # フォント
 if setting.mode == 0:
-    #font_path = '/usr/share/fonts/opentype/ipafont-gothic/ipag.ttf'
-    #font_path = '/usr/share/fonts/opentype/ipaexfont-gothic/ipaexg.ttf'
-    #FONT_JP = None  # ★仮★
     FONT_JP = 'notoserifcjkjp'  # 日本語対応
     FONT_JP_B = 'notosanscjkjp'   # 日本語対応, bold?
 else:
@@ -80,10 +77,6 @@ else:
     FONT_JP = 'notoserifcjkjp'  # 日本語対応
     FONT_JP_B = 'notosanscjkjp'   # 日本語対応, bold?
 
-# 終了ボタン
-_end_button = None
-_end_button_text = None
-END_BUTTON_RECT = (0, 0, 40, 30)
 
 # 文字色
 COLOR_TEXT = (0, 0, 0)
@@ -97,6 +90,12 @@ COLOR_BUTTON_FONT = (0, 0, 0)
 
 # 長押し判定用
 _press_count = 0
+_long_press = False
+
+# サーモグラフィ画像サイズ
+_thermo_grf_width  = setting.thermo_width
+_thermo_grf_height = setting.thermo_height
+
 
 # ------------------------------
 # xrandr | grep '*'コマンドの実行
@@ -209,7 +208,6 @@ def open_disp():
     #_status_font = pygame.font.SysFont(FONT_JP_B, 30)
     _status_font = pygame.font.SysFont(FONT_JP, 30)
 
-
     # センサー範囲
     global _sensor_rect
     _sensor_rect = pygame.Rect(SENSOR_RECT)
@@ -221,13 +219,6 @@ def open_disp():
     _body_temp_rect = pygame.Rect(TEMP_RECT)
     _body_temp_font = pygame.font.SysFont(None, 50)
     #_body_temp_font = pygame.font.SysFont(FONT_JP_B, 30)
-
-    # ボタン作成
-    global _end_button
-    global _end_button_text
-    _end_button = pygame.Rect(END_BUTTON_RECT)
-    button_font = pygame.font.SysFont(FONT_JP, 14)
-    _end_button_text = button_font.render('終了', True, COLOR_BUTTON_FONT)
 
     # マウス非表示化
     pygame.mouse.set_visible(False)
@@ -247,8 +238,10 @@ def close_disp():
 # 画面に入力画像を出力する
 # Input : img = 入力画像(pygame_img)
 #       : body_temp = 体温
+# Return1 : True: 成功, False: エラー,
+# Return2 : True: 長押し, 
 # ------------------------------
-def out_disp(img, colorbar_img, status_text, status_pos, bg_color, body_temp, sensor_data, face_rect):
+def out_disp(img, colorbar_img, status_text, status_pos, bg_color, body_temp, sensor_data, face_rect, face_detect):
     if img is None:
         # 指定パスの画像がない場合は既定ファイルを読み込む
         img = pygame.image.load(READ_ERR_IMAGE)
@@ -256,16 +249,17 @@ def out_disp(img, colorbar_img, status_text, status_pos, bg_color, body_temp, se
             # 既定ファイルも開けなかった場合の処理（暫定）
             # 終了
             pygame.quit()
-        return False
+        return False, False
 
     # サーモグラフィ画像作成,
+    global _thermo_grf_width, _thermo_grf_height
     if setting.sensor == 0:
         thermo_img = make_thermograph(sensor_data, 8, 8, setting.colorbar_min, setting.colorbar_max,\
-                                      setting.thermo_width, setting.thermo_height)
+                                      _thermo_grf_width, _thermo_grf_height)
     else:
         # 新センサ 80x60
         thermo_img = make_thermograph(sensor_data, 80, 60, setting.colorbar_min, setting.colorbar_max,\
-                                      setting.thermo_width, setting.thermo_height)
+                                      _thermo_grf_width, _thermo_grf_height)
 
     # 画像表示
     _screen_pygame.blit(img, (0, 0))
@@ -274,7 +268,7 @@ def out_disp(img, colorbar_img, status_text, status_pos, bg_color, body_temp, se
     if setting.thermo_width > 0:
         _screen_pygame.blit(thermo_img, (setting.comp_ofst_x+20, setting.comp_ofst_y))
 
-    if setting.face_detect == 0:
+    if face_detect == 0:
         # センサ範囲矩形描画
         pygame.draw.rect(_screen_pygame, COLOR_SENSOR, SENSOR_RECT, 2)  # 枠線
 
@@ -289,7 +283,7 @@ def out_disp(img, colorbar_img, status_text, status_pos, bg_color, body_temp, se
     # 体温表示
     if body_temp != 0:
         _body_temp_text = _body_temp_font.render(str(body_temp), True, COLOR_TEXT)
-        if setting.face_detect == 0:
+        if face_detect == 0:
             draw_text_rect(_body_temp_text, (TEMP_START_POS[0]+5,TEMP_START_POS[1]+2), _body_temp_rect, bg_color)
         else:
             # 右端チェック はみ出す場合は左側に表示 +100はテキストサイズ＋オフセット
@@ -302,33 +296,28 @@ def out_disp(img, colorbar_img, status_text, status_pos, bg_color, body_temp, se
             TempRect = (TempStartPos, (76, 36))
             bodyTempRect = pygame.Rect(TempRect)
             draw_text_rect(_body_temp_text, TempStartPos, bodyTempRect, bg_color)
-            
-            
-    # ボタン追加 ★仮★
-    draw_text_rect(_end_button_text, (5, 4), _end_button, COLOR_BUTTON)
 
     # 表示更新
     pygame.display.update()
 
 
     global _press_count
+    global _long_press
     # イベント取得
     for event in pygame.event.get():
         # 閉じるボタンが押された時の処理
         if event.type == QUIT:
             pygame.quit()
-            return False
+            return False, False
 
         # マウスイベント
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            if _end_button.collidepoint(event.pos):
-                pygame.quit()
-                return False
-                
         elif event.type == pygame.MOUSEBUTTONUP:
             # 長押しカウントクリア
             _press_count = 0
-
+            if _long_press:
+                # サービスモード起動
+                _long_press = False
+                return True, True
 
     # 長押し判定
     mouse_pressed = pygame.mouse.get_pressed()
@@ -336,11 +325,31 @@ def out_disp(img, colorbar_img, status_text, status_pos, bg_color, body_temp, se
         _press_count += 1
         if _press_count > 10:   # 一定のカウント以上で長押しと判定
             print('長押し検出！')
-            pygame.quit()  # 仮で終了処理を入れておく
-            return False            
+            _long_press = True
 
 
-    return True
+    return True, False
+
+
+# ------------------------------
+# 起動中メッセージを表示
+# Input : 
+#       : 
+# ------------------------------
+def startMsg_disp():
+    screen = pygame.display.set_mode((0,0), pygame.FULLSCREEN)
+    start_msg = pygame.image.load("start_msg.jpg")
+    screen.blit(start_msg, (0, 0))
+    pygame.display.update()
+
+
+# ------------------------------
+# ------------------------------
+def set_thermo_size(width, height):
+    global _thermo_grf_width, _thermo_grf_height
+    _thermo_grf_width  = width
+    _thermo_grf_height = height
+    return
 
 
 # ------------------------------

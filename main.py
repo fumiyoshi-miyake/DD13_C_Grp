@@ -17,20 +17,27 @@ from pygame_util import convert_opencv_img_to_pygame
 from pygame_util import out_disp
 from pygame_util import close_disp
 from pygame_util import startMsg_disp
+from pygame_util import set_thermo_size
 
 from calc import measure
 from calc import AVERAGE_COUNT
     
+from service_mode import open_service_mode
+from service_mode import read_service_csv
 
 # 初期化
 BodyTempArray = [0] * AVERAGE_COUNT
 BodyTempIndex = 0
 SeqCount = 0
+service_mode_on = False
+
+face_detect = setting.face_detect
+
 
 # 実機
 if setting.mode == 0:
     # 公開ライブラリ又はファイルインポート
-    if setting.face_detect == 0:
+    if face_detect == 0:
         # 顔検知OFF
         import pygame
         import pygame.camera
@@ -45,7 +52,7 @@ if setting.mode == 0:
         import adafruit_amg88xx 
 
     # ローカルファイルインポート
-    if setting.face_detect == 0:
+    if face_detect == 0:
         # 顔検知OFF
         import pygame_camera
     else:
@@ -64,6 +71,7 @@ else:
     # ローカルファイルインポート
     import module
 
+
 try:
     # 起動中メッセージ表示
     startMsg_disp()
@@ -79,7 +87,7 @@ try:
             sensor = Lepton.Sensor("/dev/spidev0.0")
 
         # カメラ初期化
-        if setting.face_detect == 0:
+        if face_detect == 0:
             # 顔検知OFF
             camera = pygame_camera.Camera(setting.resolution_width, setting.resolution_height, setting.debug)
         else:
@@ -96,8 +104,11 @@ try:
     open_disp()
 
     # カラーバー画像作成
-    colorbar_img = make_colorbar(setting.colorbar_min, setting.colorbar_max,\
-                                 setting.colorbar_width, setting.colorbar_height)
+    if setting.colorbar_width > 0:
+        colorbar_img = make_colorbar(setting.colorbar_min, setting.colorbar_max,\
+                                     setting.colorbar_width, setting.colorbar_height)
+    else:
+        colorbar_img = None
 
     # 実機
     if setting.mode == 0:
@@ -105,8 +116,7 @@ try:
         sensor.start()
         camera.start()
 
-        while True:
-
+        while(service_mode_on == False):
             # 時間計測開始
             #t1 = time.time()
 
@@ -128,11 +138,13 @@ try:
                 measure(camera_img, sensordata, BodyTempArray, BodyTempIndex, SeqCount)
 
             # OpenCV_data → Pygame_data
-            if setting.face_detect == 1: #顔検知ON
+            if face_detect == 1: #顔検知ON
                 camera_img = convert_opencv_img_to_pygame(camera_img)
 
             # 結果の画像を表示する
-            disp_ret = out_disp(camera_img, colorbar_img, msgStr, msgPos, text_bg_color, bodyTemp, sensordata, face_rect)
+            disp_ret, service_mode_on = \
+                out_disp(camera_img, colorbar_img, msgStr, msgPos, text_bg_color, \
+                        bodyTemp, sensordata, face_rect, face_detect)
 
             # カメラから読み込んだ映像を破棄する
             camera.seek()
@@ -150,10 +162,16 @@ try:
                 # カメラ終了
                 camera.close()
                 exit()
+
+            # サービスモード起動時
+            if service_mode_on:
+                open_service_mode()
+                print('close_service_mode')
+                service_mode_on = False
+
     #シュミレーター
     else:
-
-        while(True):
+        while(service_mode_on == False):
             #0.1秒のスリープ
             time.sleep(.1)
 
@@ -168,17 +186,27 @@ try:
 
             # 測定
             BodyTempIndex, SeqCount, msgStr, msgPos, text_bg_color, bodyTemp, face_rect = \
-                measure(pic, sensordata, BodyTempArray, BodyTempIndex, SeqCount)
+                measure(pic, sensordata, BodyTempArray, BodyTempIndex, SeqCount, face_detect)
 
             # OpenCV_data → Pygame_data
             img = convert_opencv_img_to_pygame(pic)
 
             # 画像出力
-            disp_ret = out_disp(img, colorbar_img, msgStr, msgPos, text_bg_color, bodyTemp, sensordata, face_rect)
+            disp_ret, service_mode_on = \
+                out_disp(img, colorbar_img, msgStr, msgPos, text_bg_color, \
+                        bodyTemp, sensordata, face_rect, face_detect)
 
             #　出力失敗の場合または閉じるボタン押下の時は終了する
             if disp_ret == False:
                 exit()
+
+            # サービスモード起動時
+            if service_mode_on:
+                open_service_mode()
+                print('close_service_mode')
+                face_detect, thermo_size, thermo_pos, thermo_max, thermo_min, thermo_threshold = read_service_csv()
+
+                service_mode_on = False
 
 
 #’Ctrl+C’を受け付けると終了
@@ -193,3 +221,4 @@ except KeyboardInterrupt:
         sensor.close()
         # カメラ終了
         camera.close()
+        
