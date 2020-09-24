@@ -69,3 +69,10 @@ if setting.mode == 1 :
             return image
         else:
             pass
+else:
+    if setting.sensor == 0:
+        row_count=8
+        col_count=8
+    else:
+        row_count=60
+        col_count=80

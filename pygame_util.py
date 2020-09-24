@@ -71,7 +71,9 @@ _body_temp_font = None
 if setting.mode == 0:
     #font_path = '/usr/share/fonts/opentype/ipafont-gothic/ipag.ttf'
     #font_path = '/usr/share/fonts/opentype/ipaexfont-gothic/ipaexg.ttf'
-    FONT_JP = None  # ★仮★
+    #FONT_JP = None  # ★仮★
+    FONT_JP = 'notoserifcjkjp'  # 日本語対応
+    FONT_JP_B = 'notosanscjkjp'   # 日本語対応, bold?
 else:
     # ubuntu
     #font_path = '/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc'
@@ -339,6 +341,18 @@ def out_disp(img, colorbar_img, status_text, status_pos, bg_color, body_temp, se
 
 
     return True
+
+
+# ------------------------------
+# 起動中メッセージを表示
+# Input : 
+#       : 
+# ------------------------------
+def startMsg_disp():
+    screen = pygame.display.set_mode((0,0), pygame.FULLSCREEN)
+    start_msg = pygame.image.load("start_msg.jpg")
+    screen.blit(start_msg, (0, 0))
+    pygame.display.update()
 
 
 # 暫定版 変換処理 (入力がPygameデータになれば変換は不要になるので削除する)

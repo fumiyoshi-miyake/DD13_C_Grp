@@ -21,7 +21,7 @@ END_POS = (440, 420)
 # ステータス文字垂直位置オフセット（背景の下端から離す距離）
 if setting.mode == 0:
     # 実機
-    STATUS_TEXT_OFFSET_Y = 0
+    STATUS_TEXT_OFFSET_Y = 8
 else:
     # Sim
     STATUS_TEXT_OFFSET_Y = 8
