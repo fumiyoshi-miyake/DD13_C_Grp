@@ -37,6 +37,11 @@ if setting.sensor == 0:
     # キャリブレーション実行判定　最高温度と最低温度の差
     CHANGE_OFFSET_TEMP = 3.0
 
+    # 遠い時の温度補正するかどうかのしきい値
+    DIS_ADJ_FAR_TH = 8
+    # 近い時の温度補正するかどうかのしきい値
+    DIS_ADJ_NEAR_TH = 16
+
     # センサ1画素あたりのカメラ画素
     SENSOR_TO_CAMERA_PIXCEL = 80
 
@@ -69,27 +74,27 @@ if setting.sensor == 0:
 else:
 ##### Lepton2.5
     # 温度測定判定で使用する温度しきい値以上のデータ数のしきい値
-    AVERAGE_COUNT_TH = 50
+    AVERAGE_COUNT_TH = 350
     # 測定手法（0:平均値, 1:最大値）
     MEASUREMENT_METHOD = 1
 
     # センサー有効画素領域
-    SENSOR_VALID_START_LINE_X = 30
-    SENSOR_VALID_END_LINE_X = 50
-    SENSOR_VALID_START_LINE_Y = 15
-    SENSOR_VALID_END_LINE_Y = 35
+    SENSOR_VALID_START_LINE_X = 25
+    SENSOR_VALID_END_LINE_X = 56
+    SENSOR_VALID_START_LINE_Y = 10
+    SENSOR_VALID_END_LINE_Y = 41
 
     # 測定距離判定チェック領域
     DIS_CHK_AREA_START_LINE_X = 20
-    DIS_CHK_AREA_END_LINE_X = 60
-    DIS_CHK_AREA_START_LINE_Y = 15
-    DIS_CHK_AREA_END_LINE_Y = 35
+    DIS_CHK_AREA_END_LINE_X = 61
+    DIS_CHK_AREA_START_LINE_Y = 10
+    DIS_CHK_AREA_END_LINE_Y = 41
 
-    # 測定距離判定TH TH以上のとき測定しない MAX=800
-    DIS_CHK_AREA_TH = 600
+    # 測定距離判定TH TH以上のとき測定しない MAX=1200
+    DIS_CHK_AREA_TH = 850
 
-    # 体温のオフセット値(この値は周辺温度により変動する)
-    offset_temp = 2.4
+    # 体温のオフセット値(Leptonは未調整なので固定)
+    offset_temp = 2.0
 
     # キャリブレーション実行判定　最高温度と最低温度の差
     CHANGE_OFFSET_TEMP = 2.0
@@ -98,9 +103,14 @@ else:
     SENSOR_TO_CAMERA_PIXCEL = 8
 
     # 周辺温度が最低の時のオフセット値
-    MIN_OFFSET_TEMP = 3
+    MIN_OFFSET_TEMP = 2.0
     # 周辺温度が最高の時のオフセット値
-    MAX_OFFSET_TEMP = 1.4
+    MAX_OFFSET_TEMP = 2.0
+
+    # 遠い時の温度補正するかどうかのしきい値
+    DIS_ADJ_FAR_TH = 400
+    # 近い時の温度補正するかどうかのしきい値
+    DIS_ADJ_NEAR_TH = 850
 
     # 顔サイズ別オフセット値
     SIZE_OFFSET_400 = -2
@@ -189,8 +199,12 @@ def getTempDataFaceDetOff(inTemp):
           outTemp = maxTemp
           
        # 距離によるOFFSET値 （注意：サーモ用データには反映していない）
-       outTemp += 1 - (countTemp * 2) / ((SENSOR_VALID_END_LINE_X - SENSOR_VALID_START_LINE_X) * (SENSOR_VALID_END_LINE_Y - SENSOR_VALID_START_LINE_Y))
-
+       if countTemp < DIS_ADJ_FAR_TH:
+           outTemp += 0.5
+       elif countTemp > DIS_ADJ_NEAR_TH:
+           outTemp -= 0.5
+           
+           
     return outTemp
 
 # ------------------------------
