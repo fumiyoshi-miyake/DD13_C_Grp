@@ -95,3 +95,15 @@ def open_win():
 
     return
 
+
+# ------------------------------
+# 
+# ------------------------------
+def set_facedetect(onoff):
+    global _is_facedetect_on
+    if onoff == 1:
+        _is_facedetect_on = True
+    else:
+        _is_facedetect_on = False
+    return
+
