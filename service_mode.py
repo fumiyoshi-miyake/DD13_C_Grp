@@ -77,7 +77,7 @@ def read_service_csv():
     thermo_pos = set_thermo.set_pos.Pos.BOTTOM_L
     thermo_max = setting.colorbar_max
     thermo_min = setting.colorbar_min
-    thermo_threshold = '37.5'
+    threshold = setting.judge_temp
 
     if os.path.isfile(SERVICE_CSV_FILE):
         with open(SERVICE_CSV_FILE, 'r') as ifile:
@@ -103,11 +103,11 @@ def read_service_csv():
                     thermo_min = int(row[1])
                 elif row[0] == 'threshold':
                     #print(' detect_6 = {}'.format(row[1]))
-                    thermo_threshold = float(row[1])
+                    threshold = float(row[1])
                 else:
                     print('else param = {}'.format(row[1]))
 
-    return face_det, thermo_size, thermo_pos, thermo_max, thermo_min, thermo_threshold
+    return face_det, thermo_size, thermo_pos, thermo_max, thermo_min, threshold
 
 
 # ------------------------------
@@ -126,9 +126,10 @@ def push_end():
 # ------------------------------
 def open_service_mode():
     # サービスモードファイル読み込み
-    face_detect, thermo_size, thermo_pos, thermo_max, thermo_min, thermo_threshold = read_service_csv()
+    face_detect, thermo_size, thermo_pos, thermo_max, thermo_min, threshold = read_service_csv()
     set_face.set_facedetect(face_detect)
     set_thermo.set_temp.set_temp(thermo_max, thermo_min)
+    set_threshold.set_threshold(threshold)
 
     global _service_win
     _service_win = tk.Tk()
