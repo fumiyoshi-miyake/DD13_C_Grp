@@ -3,7 +3,6 @@ import ctypes
 import struct
 import time
 from threading import Thread
-from threading import Lock
 
 # relative imports in Python3 must be explicit
 #from ioctl_numbers import _IOR, _IOW
@@ -110,7 +109,6 @@ class Sensor(object):
     self.__capture_buf = np.zeros((Sensor.ROWS, Sensor.VOSPI_FRAME_SIZE, 1), dtype=np.uint16)
     self.__data_buffer = np.zeros((Sensor.ROWS, Sensor.COLS), dtype=np.uint16)
     self.stopped = False
-    self.lock = Lock()
 
     for i in range(Sensor.ROWS):
       self.__xmit_struct.pack_into(self.__xmit_buf, i * self.__msg_size,
@@ -206,10 +204,8 @@ class Sensor(object):
           break
 
       self.__capture_buf.byteswap(True)
-      self.lock.acquire()
       self.__data_buffer[:,:] = self.__capture_buf[:,2:,0]
       #self.__data_buffer = self.__data_buffer / 100.0 - 273.15
-      self.lock.release()
 
       end = time.time()
 
@@ -233,8 +229,6 @@ class Sensor(object):
 
   def GetData(self):
     data_buffer = np.ndarray((Sensor.ROWS, Sensor.COLS), dtype=np.uint16)
-    self.lock.acquire()
     data_buffer = self.__data_buffer
-    self.lock.release()
     data_buffer = data_buffer / 100.0 - 273.15
     return data_buffer
