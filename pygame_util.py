@@ -20,6 +20,7 @@ WIN_NAME = 'C_Grp'  # (仮)
 
 # センサー座標
 if setting.sensor == 0:
+    SENSOR_RECT_FACE_ON = ((0, 0), (640,480))
     if setting.measure_mode == 0:
         # 顔
         START_POS = (180, 80)
@@ -31,6 +32,7 @@ if setting.sensor == 0:
 else:
     START_POS = (220, 80)
     END_POS = (420, 280)
+    SENSOR_RECT_FACE_ON = ((60, 70), (480,360))
     
 #SENSOR_RECT = (START_POS[0], START_POS[1], END_POS[0], END_POS[1])
 SENSOR_RECT = (START_POS, (END_POS[0]-START_POS[0], END_POS[1]-START_POS[1]))
@@ -268,9 +270,12 @@ def out_disp(img, colorbar_img, status_text, status_pos, bg_color, body_temp, se
     if setting.thermo_width > 0:
         _screen_pygame.blit(thermo_img, (setting.comp_ofst_x+20, setting.comp_ofst_y))
 
-    if face_detect == 0:
-        # センサ範囲矩形描画
+    # センサ範囲矩形描画
+    if setting.face_detect == 0: 
         pygame.draw.rect(_screen_pygame, COLOR_SENSOR, SENSOR_RECT, 2)  # 枠線
+    else:
+        if setting.sensor == 1: 
+            pygame.draw.rect(_screen_pygame, COLOR_SENSOR, SENSOR_RECT_FACE_ON, 2)  # 枠線
 
     # 顔枠表示 顔検出時
     if face_rect[2] != 0:

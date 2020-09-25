@@ -3,7 +3,7 @@
 import cv2  # face_detect_on のみで使用
 import setting
 import GetBodyTempData
-
+import pygame_util
 
 # 枠色 RGB
 COLOR_NONE = [245, 245, 220]
@@ -93,6 +93,22 @@ def face_select(face_rect):
     return face_rect[index]
 
 # ------------------------------
+# 顔枠が矩形内に収まっているか判定
+# Input  : face_rect = 顔枠
+# Return : 判定結果
+# ------------------------------
+def check_face_pos(face_rect):
+    startx = face_rect[0] 
+    starty = face_rect[1] 
+    endx = face_rect[0] + face_rect[2]
+    endy = face_rect[1] + face_rect[3]
+
+    if startx > pygame_util.SENSOR_RECT_FACE_ON[0][0] and starty > pygame_util.SENSOR_RECT_FACE_ON[0][1] \
+    and endx < pygame_util.SENSOR_RECT_FACE_ON[0][0] + pygame_util.SENSOR_RECT_FACE_ON[1][0] and endy < pygame_util.SENSOR_RECT_FACE_ON[0][1] + pygame_util.SENSOR_RECT_FACE_ON[1][1]:
+        return True
+    return False
+
+# ------------------------------
 # 顔サイズチェック
 # Input  : rect
 #        : sensordata = サーモセンサデータ
@@ -139,12 +155,20 @@ def face_detect_on(camera_img, sensordata, BodyTempArray, BodyTempIndex, SeqCoun
     face_rect = [0,0,0,0]
 
     # 顔が複数ある場合は、画面中央に近い１つにする
-    if len(facerect) > 1:
-        face_rect = face_select(facerect)
-    elif len(facerect) == 1:
-        face_rect = facerect[0]
+    if len(facerect) == 0:
+        face_pos_judge = False
+    else:
+        if len(facerect) == 1:
+            face_rect = facerect[0]
+        else:
+            face_rect = face_select(facerect)
+        
+        #顔枠がセンサー範囲に収まっているか判定 
+        face_pos_judge = check_face_pos(face_rect)
 
-    # 顔が１つ以上検出
+
+
+    # 体温測定できた顔があるか
     if len(facerect) >= 1:
         #　顔サイズチェック
         bodyTemp = check_face_size(face_rect, sensordata)
