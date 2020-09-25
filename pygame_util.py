@@ -102,6 +102,18 @@ _long_press = False
 _thermo_grf_width  = setting.thermo_width
 _thermo_grf_height = setting.thermo_height
 
+# カラーバー画像サイズ
+_color_bar_width  = setting.colorbar_width
+_color_bar_height = _thermo_grf_height  # サーモグラフィ画像と同じ高さ
+
+# カラーバー画像表示位置
+_colorbar_pos_y = setting.comp_ofst_y
+_colorbar_pos_x = setting.comp_ofst_x
+
+# サーモグラフィ画像表示位置
+_thermogrf_pos_y = _colorbar_pos_y
+_thermogrf_pos_x = _colorbar_pos_x+20
+    
 # サービスモードで変更可能な設定値
 _face_detect = setting.face_detect  # 顔検出On/Off設定
 _thermo_size = Size.M  # サーモグラフィ画像サイズ設定
@@ -119,15 +131,44 @@ _thermo_min = setting.colorbar_min  # サーモグラフィ最低温度設定
 # ------------------------------
 def set_param(face_detect, size, pos, temp_max, temp_min):
     global _face_detect
-    global _thermo_size
-    global _thermo_pos
-    global _thermo_max
-    global _thermo_min
+    global _thermo_size, _thermo_pos, _thermo_max, _thermo_min
+    global _color_bar_width
+
     _face_detect = face_detect
-    _thermo_size = size
+
+    if size == 'M':
+        _thermo_size = Size.M
+        set_thermo_size(120, 90)
+        set_thermo_img_pos(setting.comp_ofst_x, setting.comp_ofst_y, \
+                        setting.comp_ofst_x+_color_bar_width, setting.comp_ofst_y)
+    elif size == 'L':
+        _thermo_size = Size.L
+        set_thermo_size(180, 135)
+        set_thermo_img_pos(setting.comp_ofst_x, setting.comp_ofst_y-45, \
+                        setting.comp_ofst_x+_color_bar_width, setting.comp_ofst_y-45)
+    elif size == 'S':
+        _thermo_size = Size.S
+        set_thermo_size(96, 72)
+        set_thermo_img_pos(setting.comp_ofst_x, setting.comp_ofst_y+18, \
+                        setting.comp_ofst_x+_color_bar_width, setting.comp_ofst_y+18)
+    elif size == 'ALL':
+        _thermo_size = Size.ALL
+        set_thermo_size(640, 480)
+        set_thermo_img_pos(0, 0, 0, 0)
+    else:
+        _thermo_size = Size.HIDE
+        set_thermo_size(0, 0)
+        _color_bar_width = 0
+        set_thermo_img_pos(0, 0, 0, 0)
+
+    if size != Size.HIDE:
+        _color_bar_width = setting.colorbar_width
+
     _thermo_pos = pos
     _thermo_max = temp_max
     _thermo_min = temp_min
+
+    
     return
 
 # ------------------------------
@@ -157,25 +198,25 @@ def getResolution():
 
 # ------------------------------
 # カラーバー作成
-# Input  : width  = 出力画像 水平画素数
-#          height = 出力画像 垂直画素数
 # Return : colorbar_array = カラーバー画像データ
 # ------------------------------
-def make_colorbar(width, height):
+def make_colorbar():
     temp_min = int(_thermo_min*10)
     temp_max = int(_thermo_max*10)
 
     # 指定範囲(min〜max)のカラーバーを作成
-    temp_array = [[[0]*3 for i in range(temp_max-temp_min)] for x in range(width)]
+    global _color_bar_width
+    global _color_bar_height
+    temp_array = [[[0]*3 for i in range(temp_max-temp_min)] for x in range(_color_bar_width)]
     for temp in range(temp_min, temp_max, 1):
         color = temp_to_rgb(temp_min, temp_max, temp)
-        for x in range(width):
+        for x in range(_color_bar_width):
             temp_array[x][temp_max-temp-1] = color
 
     # 配列データ → 画像ファイル
     img = np.asarray(temp_array)
     pygame_img = pygame.surfarray.make_surface(img)
-    colorbar_img = pygame.transform.scale(pygame_img, (width, height))
+    colorbar_img = pygame.transform.scale(pygame_img, (_color_bar_width, _color_bar_height))
 
     return colorbar_img
 
@@ -273,6 +314,7 @@ def close_disp():
 # ------------------------------
 def out_disp(img, colorbar_img, status_text, status_pos, bg_color, body_temp, sensor_data, face_rect):
     global _face_detect
+
     if img is None:
         # 指定パスの画像がない場合は既定ファイルを読み込む
         img = pygame.image.load(READ_ERR_IMAGE)
@@ -298,10 +340,13 @@ def out_disp(img, colorbar_img, status_text, status_pos, bg_color, body_temp, se
 
     # 画像表示
     _screen_pygame.blit(img, (0, 0))
-    if setting.colorbar_width > 0:
-        _screen_pygame.blit(colorbar_img, (setting.comp_ofst_x, setting.comp_ofst_y))
-    if setting.thermo_width > 0:
-        _screen_pygame.blit(thermo_img, (setting.comp_ofst_x+20, setting.comp_ofst_y))
+    global _color_bar_width, _color_bar_height
+    global _colorbar_pos_y, _colorbar_pos_x
+    global _thermogrf_pos_x, _thermogrf_pos_y
+    if _color_bar_width > 0:
+        _screen_pygame.blit(colorbar_img, (_colorbar_pos_x, _colorbar_pos_y))
+    if _thermo_grf_width > 0:
+        _screen_pygame.blit(thermo_img, (_thermogrf_pos_x, _thermogrf_pos_y))
 
     # センサ範囲矩形描画
     if _face_detect == 0:
@@ -385,8 +430,26 @@ def startMsg_disp():
 # ------------------------------
 def set_thermo_size(width, height):
     global _thermo_grf_width, _thermo_grf_height
+    global _color_bar_height
+
     _thermo_grf_width  = width
     _thermo_grf_height = height
+    _color_bar_height = _thermo_grf_height
+
+    return
+
+
+# ------------------------------
+# ------------------------------
+def set_thermo_img_pos(colbar_x, colbar_y, thermo_x, thermo_y):
+    global _colorbar_pos_y, _colorbar_pos_x
+    global _thermogrf_pos_y, _thermogrf_pos_x
+
+    _colorbar_pos_y = colbar_y
+    _colorbar_pos_x = colbar_x
+    _thermogrf_pos_y = thermo_y
+    _thermogrf_pos_x = thermo_x
+
     return
 
 

@@ -18,7 +18,6 @@ from pygame_util import out_disp
 from pygame_util import close_disp
 from pygame_util import startMsg_disp
 from pygame_util import set_param
-#from pygame_util import set_thermo_size
 
 from calc import measure
 from calc import AVERAGE_COUNT
@@ -108,10 +107,7 @@ try:
     open_disp()
 
     # カラーバー画像作成
-    if setting.colorbar_width > 0:
-        colorbar_img = make_colorbar(setting.colorbar_width, setting.colorbar_height)
-    else:
-        colorbar_img = None
+    colorbar_img = make_colorbar()
 
     # 実機
     if setting.mode == 0:
@@ -170,6 +166,7 @@ try:
             # サービスモード起動時
             if service_mode_on:
                 before_face_detect = face_detect
+                before_thermo_size = thermo_size
                 open_service_mode()
                 # サービスモード設定ファイル読み込み
                 face_detect, thermo_size, thermo_pos, thermo_max, thermo_min, temp_threshold = read_service_csv()
@@ -189,6 +186,11 @@ try:
                         # 顔検知ON
                         camera = raspicamera.Camera(setting.resolution_width, \
                                     setting.resolution_height, setting.debug)
+ 
+                # サーモグラフィ画像サイズが変更していたらカラーバーも再生成する
+                if thermo_size != before_thermo_size:
+                    # カラーバー再生成
+                    colorbar_img = make_colorbar()
                     
                 service_mode_on = False
 
@@ -226,11 +228,17 @@ try:
 
             # サービスモード起動時
             if service_mode_on:
+                before_thermo_size = thermo_size
                 open_service_mode()
                 # サービスモード設定ファイル読み込み
                 face_detect, thermo_size, thermo_pos, thermo_max, thermo_min, temp_threshold = read_service_csv()
                 set_param(face_detect, thermo_size, thermo_pos, thermo_max, thermo_min)
 
+                # サーモグラフィ画像サイズが変更していたらカラーバーも再生成する
+                if thermo_size != before_thermo_size:
+                    # カラーバー再生成
+                    colorbar_img = make_colorbar()
+                    
                 service_mode_on = False
 
 

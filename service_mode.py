@@ -84,7 +84,6 @@ def read_service_csv():
             reader = csv.reader(ifile)
             for row in reader:
                 if row[0] == 'face_det':
-                    #print(' detect_1 = {}'.format(row[1]))
                     if row[1] == 'True':
                         face_det = 1
                     else:
@@ -96,13 +95,10 @@ def read_service_csv():
                     #print(' detect_3 = {}'.format(row[1]))
                     thermo_pos = row[1]
                 elif row[0] == 'thermo_max':
-                    #print(' detect_4 = {}'.format(row[1]))
                     thermo_max = int(row[1])
                 elif row[0] == 'thermo_min':
-                    #print(' detect_5 = {}'.format(row[1]))
                     thermo_min = int(row[1])
                 elif row[0] == 'threshold':
-                    #print(' detect_6 = {}'.format(row[1]))
                     threshold = float(row[1])
                 else:
                     print('else param = {}'.format(row[1]))
@@ -128,6 +124,8 @@ def open_service_mode():
     # サービスモードファイル読み込み
     face_detect, thermo_size, thermo_pos, thermo_max, thermo_min, threshold = read_service_csv()
     set_face.set_facedetect(face_detect)
+    set_thermo.set_size.set_size(thermo_size)
+    #set_thermo.set_pos.set_pos(thermo_pos)
     set_thermo.set_temp.set_temp(thermo_max, thermo_min)
     set_threshold.set_threshold(threshold)
 
