@@ -73,7 +73,7 @@ def push_back():
 # ------------------------------
 def read_service_csv():
     face_det = setting.face_detect
-    thermo_size = set_thermo.set_size.Size.M
+    thermo_size = 'M'
     thermo_pos = set_thermo.set_pos.Pos.BOTTOM_L
     thermo_max = setting.colorbar_max
     thermo_min = setting.colorbar_min
