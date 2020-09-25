@@ -17,6 +17,7 @@ from pygame_util import convert_opencv_img_to_pygame
 from pygame_util import out_disp
 from pygame_util import close_disp
 from pygame_util import startMsg_disp
+from pygame_util import set_param
 from pygame_util import set_thermo_size
 
 from calc import measure
@@ -25,26 +26,29 @@ from calc import AVERAGE_COUNT
 from service_mode import open_service_mode
 from service_mode import read_service_csv
 
+
 # 初期化
 BodyTempArray = [0] * AVERAGE_COUNT
 BodyTempIndex = 0
 SeqCount = 0
 service_mode_on = False
 
-#face_detect = setting.face_detect
 # サービスモード設定ファイル読み込み
+# face_detect : 顔検出On/Off設定
+# thermo_size : サーモグラフィ画像サイズ設定
+# thermo_pos  : サーモグラフィ画像位置設定
+# thermo_max, thermo_min : サーモグラフィ最高/最低温度設定
+# thermo_threshold : 体温閾値設定
 face_detect, thermo_size, thermo_pos, thermo_max, thermo_min, thermo_threshold = read_service_csv()
-
+set_param(face_detect, thermo_size, thermo_pos, thermo_max, thermo_min, thermo_threshold)
 
 # 実機
 if setting.mode == 0:
     # 公開ライブラリ又はファイルインポート
-    #if face_detect == 0:
     # 顔検知OFF
     import pygame
     import pygame.camera
     from pygame.locals import *
-    #else:
     # 顔検知ON
     import picamera
     import picamera.array
@@ -54,10 +58,8 @@ if setting.mode == 0:
         import adafruit_amg88xx 
 
     # ローカルファイルインポート
-    #if face_detect == 0:
     # 顔検知OFF
     import pygame_camera
-    #else:
     # 顔検知ON
     import raspicamera
 
@@ -107,8 +109,7 @@ try:
 
     # カラーバー画像作成
     if setting.colorbar_width > 0:
-        colorbar_img = make_colorbar(setting.colorbar_min, setting.colorbar_max,\
-                                     setting.colorbar_width, setting.colorbar_height)
+        colorbar_img = make_colorbar(setting.colorbar_width, setting.colorbar_height)
     else:
         colorbar_img = None
 
@@ -118,7 +119,7 @@ try:
         sensor.start()
         camera.start()
 
-        while(service_mode_on == False):
+        while(True):
             # 時間計測開始
             #t1 = time.time()
 
@@ -137,7 +138,7 @@ try:
 
             # 測定
             BodyTempIndex, SeqCount, msgStr, msgPos, text_bg_color, bodyTemp, face_rect = \
-                measure(camera_img, sensordata, BodyTempArray, BodyTempIndex, SeqCount)
+                measure(camera_img, sensordata, BodyTempArray, BodyTempIndex, SeqCount, face_detect)
 
             # OpenCV_data → Pygame_data
             if face_detect == 1: #顔検知ON
@@ -146,7 +147,7 @@ try:
             # 結果の画像を表示する
             disp_ret, service_mode_on = \
                 out_disp(camera_img, colorbar_img, msgStr, msgPos, text_bg_color, \
-                        bodyTemp, sensordata, face_rect, face_detect)
+                        bodyTemp, sensordata, face_rect)
 
             # カメラから読み込んだ映像を破棄する
             camera.seek()
@@ -171,6 +172,7 @@ try:
                 open_service_mode()
                 # サービスモード設定ファイル読み込み
                 face_detect, thermo_size, thermo_pos, thermo_max, thermo_min, thermo_threshold = read_service_csv()
+                set_param(face_detect, thermo_size, thermo_pos, thermo_max, thermo_min, thermo_threshold)
 
                 # 顔検出モードが変更していたらカメラを切り替える
                 if face_detect != before_face_detect:
@@ -191,7 +193,7 @@ try:
 
     #シュミレーター
     else:
-        while(service_mode_on == False):
+        while(True):
             #0.1秒のスリープ
             time.sleep(.1)
 
@@ -214,7 +216,7 @@ try:
             # 画像出力
             disp_ret, service_mode_on = \
                 out_disp(img, colorbar_img, msgStr, msgPos, text_bg_color, \
-                        bodyTemp, sensordata, face_rect, face_detect)
+                        bodyTemp, sensordata, face_rect)
 
             #　出力失敗の場合または閉じるボタン押下の時は終了する
             if disp_ret == False:
@@ -225,6 +227,7 @@ try:
                 open_service_mode()
                 # サービスモード設定ファイル読み込み
                 face_detect, thermo_size, thermo_pos, thermo_max, thermo_min, thermo_threshold = read_service_csv()
+                set_param(face_detect, thermo_size, thermo_pos, thermo_max, thermo_min, thermo_threshold)
 
                 service_mode_on = False
 
