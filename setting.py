@@ -21,6 +21,9 @@ measure_mode = 0
 colorbar_min = 30.0
 colorbar_max = 40.0
 
+#温度OK/NGしきい値
+judge_temp = 37.5
+
 # 解像度( width, height )
 resolution_width = 640
 resolution_height = 480
