@@ -33,7 +33,7 @@ if setting.sensor == 0:
     DIS_CHK_AREA_TH = 20
 
     # 体温のオフセット値(この値は周辺温度により変動する)
-    offset_temp = 5
+    offset_temp = 5.5
 
     # キャリブレーション実行判定　最高温度と最低温度の差
     CHANGE_OFFSET_TEMP = 3.0
@@ -61,9 +61,11 @@ if setting.sensor == 0:
     # 顔測定
     if setting.measure_mode == 0:
         # 周辺温度が最低の時のオフセット値
-        MIN_OFFSET_TEMP = 4.5
+        #MIN_OFFSET_TEMP = 4.5
+        MIN_OFFSET_TEMP = 5.5
         # 周辺温度が最高の時のオフセット値
-        MAX_OFFSET_TEMP = 3.0
+        #MAX_OFFSET_TEMP = 3.0
+        MAX_OFFSET_TEMP = 5.5
 
     # 手首測定
     else:
@@ -77,25 +79,25 @@ else:
     # 温度測定判定で使用する温度しきい値以上のデータ数のしきい値
     AVERAGE_COUNT_TH = 350
     # 測定手法（0:平均値, 1:最大値）
-    MEASUREMENT_METHOD = 1
+    MEASUREMENT_METHOD = 0
 
     # センサー有効画素領域
-    SENSOR_VALID_START_LINE_X = 25
-    SENSOR_VALID_END_LINE_X = 56
-    SENSOR_VALID_START_LINE_Y = 10
-    SENSOR_VALID_END_LINE_Y = 41
+    SENSOR_VALID_START_LINE_X = 15
+    SENSOR_VALID_END_LINE_X = 66
+    SENSOR_VALID_START_LINE_Y = 5
+    SENSOR_VALID_END_LINE_Y = 46
 
     # 測定距離判定チェック領域
-    DIS_CHK_AREA_START_LINE_X = 20
-    DIS_CHK_AREA_END_LINE_X = 61
-    DIS_CHK_AREA_START_LINE_Y = 10
-    DIS_CHK_AREA_END_LINE_Y = 41
+    DIS_CHK_AREA_START_LINE_X = 10
+    DIS_CHK_AREA_END_LINE_X = 71
+    DIS_CHK_AREA_START_LINE_Y = 5
+    DIS_CHK_AREA_END_LINE_Y = 46
 
     # 測定距離判定TH TH以上のとき測定しない MAX=1200
-    DIS_CHK_AREA_TH = 850
+    DIS_CHK_AREA_TH = 1000
 
     # 体温のオフセット値(Leptonは未調整なので固定)
-    offset_temp = 2.0
+    offset_temp = 4.3
 
     # キャリブレーション実行判定　最高温度と最低温度の差
     CHANGE_OFFSET_TEMP = 2.0
@@ -109,9 +111,11 @@ else:
     MAX_OFFSET_TEMP = 2.0
 
     # 遠い時の温度補正するかどうかのしきい値
+    DIS_ADJ_FAR_TH = 320
     DIS_ADJ_FAR_TH = 400
     # 近い時の温度補正するかどうかのしきい値
-    DIS_ADJ_NEAR_TH = 850
+    #DIS_ADJ_NEAR_TH = 850
+    DIS_ADJ_NEAR_TH = 900
 
     # 顔サイズ別オフセット値
     SIZE_OFFSET_400 = -2
@@ -202,10 +206,26 @@ def getTempDataFaceDetOff(inTemp):
        # 距離によるOFFSET値 （注意：サーモ用データには反映していない）
        if countTemp < DIS_ADJ_FAR_TH:
            outTemp += 0.5
-       elif countTemp > DIS_ADJ_NEAR_TH:
-           outTemp -= 0.5
-           
-           
+       elif countTemp < 420:
+           outTemp += 0.4
+       elif countTemp < 440:
+           outTemp += 0.3
+       elif countTemp < 460:
+           outTemp += 0.2
+       elif countTemp < 480:
+           outTemp += 0.1
+
+       if countTemp > DIS_ADJ_NEAR_TH:
+           outTemp -= 0.2
+       #elif countTemp > 880:
+       #    outTemp -= 0.4
+       elif countTemp > 860:
+           outTemp -= 0.1
+       #elif countTemp > 840:
+       #    outTemp -= 0.2
+       #elif countTemp > 820:
+       #    outTemp -= 0.1
+
     return outTemp
 
 # ------------------------------
