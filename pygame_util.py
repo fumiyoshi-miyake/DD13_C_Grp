@@ -108,7 +108,7 @@ _thermo_size = Size.M  # サーモグラフィ画像サイズ設定
 _thermo_pos = Pos.BOTTOM_L  # サーモグラフィ画像位置設定
 _thermo_max = setting.colorbar_max  # サーモグラフィ最高温度設定
 _thermo_min = setting.colorbar_min  # サーモグラフィ最低温度設定
-_thermo_threshold = '37.5' # 体温閾値設定
+
 
 # ------------------------------
 # サービスモードで変更可能な設定値の設定
@@ -116,21 +116,18 @@ _thermo_threshold = '37.5' # 体温閾値設定
 # size : サーモグラフィ画像サイズ設定
 # pos  : サーモグラフィ画像位置設定
 # temp_max, temp_min : サーモグラフィ最高/最低温度設定
-# temp_threshold : 体温閾値設定
 # ------------------------------
-def set_param(face_detect, size, pos, temp_max, temp_min, temp_threshold):
+def set_param(face_detect, size, pos, temp_max, temp_min):
     global _face_detect
     global _thermo_size
     global _thermo_pos
     global _thermo_max
     global _thermo_min
-    global _thermo_threshold
     _face_detect = face_detect
     _thermo_size = size
     _thermo_pos = pos
     _thermo_max = temp_max
     _thermo_min = temp_min
-    _thermo_threshold = temp_threshold
     return
 
 # ------------------------------

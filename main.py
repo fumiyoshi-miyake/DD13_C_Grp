@@ -18,7 +18,7 @@ from pygame_util import out_disp
 from pygame_util import close_disp
 from pygame_util import startMsg_disp
 from pygame_util import set_param
-from pygame_util import set_thermo_size
+#from pygame_util import set_thermo_size
 
 from calc import measure
 from calc import AVERAGE_COUNT
@@ -38,9 +38,9 @@ service_mode_on = False
 # thermo_size : サーモグラフィ画像サイズ設定
 # thermo_pos  : サーモグラフィ画像位置設定
 # thermo_max, thermo_min : サーモグラフィ最高/最低温度設定
-# thermo_threshold : 体温閾値設定
-face_detect, thermo_size, thermo_pos, thermo_max, thermo_min, thermo_threshold = read_service_csv()
-set_param(face_detect, thermo_size, thermo_pos, thermo_max, thermo_min, thermo_threshold)
+# temp_threshold : 体温閾値設定
+face_detect, thermo_size, thermo_pos, thermo_max, thermo_min, temp_threshold = read_service_csv()
+set_param(face_detect, thermo_size, thermo_pos, thermo_max, thermo_min)
 
 # 実機
 if setting.mode == 0:
@@ -138,7 +138,8 @@ try:
 
             # 測定
             BodyTempIndex, SeqCount, msgStr, msgPos, text_bg_color, bodyTemp, face_rect = \
-                measure(camera_img, sensordata, BodyTempArray, BodyTempIndex, SeqCount, face_detect)
+                measure(camera_img, sensordata, BodyTempArray, BodyTempIndex, \
+                        SeqCount, face_detect, temp_threshold)
 
             # OpenCV_data → Pygame_data
             if face_detect == 1: #顔検知ON
@@ -171,8 +172,8 @@ try:
                 before_face_detect = face_detect
                 open_service_mode()
                 # サービスモード設定ファイル読み込み
-                face_detect, thermo_size, thermo_pos, thermo_max, thermo_min, thermo_threshold = read_service_csv()
-                set_param(face_detect, thermo_size, thermo_pos, thermo_max, thermo_min, thermo_threshold)
+                face_detect, thermo_size, thermo_pos, thermo_max, thermo_min, temp_threshold = read_service_csv()
+                set_param(face_detect, thermo_size, thermo_pos, thermo_max, thermo_min)
 
                 # 顔検出モードが変更していたらカメラを切り替える
                 if face_detect != before_face_detect:
@@ -208,7 +209,8 @@ try:
 
             # 測定
             BodyTempIndex, SeqCount, msgStr, msgPos, text_bg_color, bodyTemp, face_rect = \
-                measure(pic, sensordata, BodyTempArray, BodyTempIndex, SeqCount, face_detect)
+                measure(pic, sensordata, BodyTempArray, BodyTempIndex, SeqCount, \
+                        face_detect, temp_threshold)
 
             # OpenCV_data → Pygame_data
             img = convert_opencv_img_to_pygame(pic)
@@ -226,8 +228,8 @@ try:
             if service_mode_on:
                 open_service_mode()
                 # サービスモード設定ファイル読み込み
-                face_detect, thermo_size, thermo_pos, thermo_max, thermo_min, thermo_threshold = read_service_csv()
-                set_param(face_detect, thermo_size, thermo_pos, thermo_max, thermo_min, thermo_threshold)
+                face_detect, thermo_size, thermo_pos, thermo_max, thermo_min, temp_threshold = read_service_csv()
+                set_param(face_detect, thermo_size, thermo_pos, thermo_max, thermo_min)
 
                 service_mode_on = False
 

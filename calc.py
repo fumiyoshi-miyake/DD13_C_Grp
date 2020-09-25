@@ -55,9 +55,8 @@ TEMP_TEXT_OFFSET_Y = 6
 #TEMP_POS = (480, 360 - TEMP_TEXT_OFFSET_Y)
 TEMP_POS = (TEMP_START_POS[0]+2, TEMP_END_POS[1] - TEMP_TEXT_OFFSET_Y)
 
-
 #温度OK/NGしきい値
-JUDGE_TEMP = 37.5
+_judge_temp = setting.judge_temp
 
 #顔検出パラメータ
 SCALE_FACTOR = 1.15
@@ -137,6 +136,8 @@ def check_face_size(rect, sensordata):
 #        : text_bg_color = 文字列背景色
 # ------------------------------
 def face_detect_on(camera_img, sensordata, BodyTempArray, BodyTempIndex, SeqCount):
+    global _judge_temp
+    
     # 顔検出の処理効率化のために、写真の情報量を落とす（モノクロにする）
     grayimg = cv2.cvtColor(camera_img, cv2.COLOR_BGR2GRAY)
 
@@ -197,7 +198,7 @@ def face_detect_on(camera_img, sensordata, BodyTempArray, BodyTempIndex, SeqCoun
 
             #体温の平均値算出
             bodyTempAve = sum(BodyTempArray) / AVERAGE_COUNT
-            if bodyTempAve >= JUDGE_TEMP:
+            if bodyTempAve >= _judge_temp:
                 msgStr = 'NG  体温異常'
                 text_bg_color = COLOR_NG  # status文字列背景色
             else:
@@ -231,6 +232,8 @@ def face_detect_on(camera_img, sensordata, BodyTempArray, BodyTempIndex, SeqCoun
 #        : bodyTempAve   = 平均体温
 # ------------------------------
 def face_detect_off(sensordata, BodyTempArray, BodyTempIndex, SeqCount):
+    global _judge_temp
+    
     # 温度データから体温取得
     bodyTemp = GetBodyTempData.getTempDataFaceDetOff(sensordata)
     
@@ -273,7 +276,7 @@ def face_detect_off(sensordata, BodyTempArray, BodyTempIndex, SeqCount):
 
         #体温の平均値算出
         bodyTempAve = sum(BodyTempArray) / AVERAGE_COUNT
-        if bodyTempAve >= JUDGE_TEMP:
+        if bodyTempAve >= _judge_temp:
             msgStr = 'NG  体温異常'
             text_bg_color = COLOR_NG  # status文字列背景色
         else:
@@ -294,7 +297,9 @@ def face_detect_off(sensordata, BodyTempArray, BodyTempIndex, SeqCount):
 #        : BodyTempIndex, SeqCount,
 # Return : BodyTempIndex, SeqCount, msgStr, msgPos, text_bg_color, body_temp, face_rect
 # ------------------------------
-def measure(camera_img, sensordata, BodyTempArray, BodyTempIndex, SeqCount, face_detect):   
+def measure(camera_img, sensordata, BodyTempArray, BodyTempIndex, SeqCount, face_detect, threshold):
+    global _judge_temp
+    _judge_temp = threshold
     #顔検出機能ON
     if face_detect == 1:
         BodyTempIndex, SeqCount, msgStr, msgPos, text_bg_color, body_temp, face_rect = \
