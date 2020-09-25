@@ -11,6 +11,10 @@ import numpy as np
 from thermo_color_pygame import temp_to_rgb
 from thermo_color_pygame import thermo2rgb
 
+from service.thermo_size import Size
+from service.thermo_pos import Pos
+
+import time
 
 # 入力ファイルパスが表示できなかった場合に表示する画像
 READ_ERR_IMAGE = 'read_err_image.jpg'
@@ -98,6 +102,36 @@ _long_press = False
 _thermo_grf_width  = setting.thermo_width
 _thermo_grf_height = setting.thermo_height
 
+# サービスモードで変更可能な設定値
+_face_detect = setting.face_detect  # 顔検出On/Off設定
+_thermo_size = Size.M  # サーモグラフィ画像サイズ設定
+_thermo_pos = Pos.BOTTOM_L  # サーモグラフィ画像位置設定
+_thermo_max = setting.colorbar_max  # サーモグラフィ最高温度設定
+_thermo_min = setting.colorbar_min  # サーモグラフィ最低温度設定
+_thermo_threshold = '37.5' # 体温閾値設定
+
+# ------------------------------
+# サービスモードで変更可能な設定値の設定
+# face_detect : 顔検出On/Off設定
+# size : サーモグラフィ画像サイズ設定
+# pos  : サーモグラフィ画像位置設定
+# temp_max, temp_min : サーモグラフィ最高/最低温度設定
+# temp_threshold : 体温閾値設定
+# ------------------------------
+def set_param(face_detect, size, pos, temp_max, temp_min, temp_threshold):
+    global _face_detect
+    global _thermo_size
+    global _thermo_pos
+    global _thermo_max
+    global _thermo_min
+    global _thermo_threshold
+    _face_detect = face_detect
+    _thermo_size = size
+    _thermo_pos = pos
+    _thermo_max = temp_max
+    _thermo_min = temp_min
+    _thermo_threshold = temp_threshold
+    return
 
 # ------------------------------
 # xrandr | grep '*'コマンドの実行
@@ -126,22 +160,20 @@ def getResolution():
 
 # ------------------------------
 # カラーバー作成
-# Input  : min = 最小温度（Blue）
-#          max = 最大温度（Red）
-#          width  = 出力画像 水平画素数
+# Input  : width  = 出力画像 水平画素数
 #          height = 出力画像 垂直画素数
 # Return : colorbar_array = カラーバー画像データ
 # ------------------------------
-def make_colorbar(min, max, width, height):
-    min = int(min*10)
-    max = int(max*10)
+def make_colorbar(width, height):
+    temp_min = int(_thermo_min*10)
+    temp_max = int(_thermo_max*10)
 
     # 指定範囲(min〜max)のカラーバーを作成
-    temp_array = [[[0]*3 for i in range(max-min)] for x in range(width)]
-    for temp in range(min, max, 1):
-        color = temp_to_rgb(min, max, temp)
+    temp_array = [[[0]*3 for i in range(temp_max-temp_min)] for x in range(width)]
+    for temp in range(temp_min, temp_max, 1):
+        color = temp_to_rgb(temp_min, temp_max, temp)
         for x in range(width):
-            temp_array[x][max-temp-1] = color
+            temp_array[x][temp_max-temp-1] = color
 
     # 配列データ → 画像ファイル
     img = np.asarray(temp_array)
@@ -155,17 +187,16 @@ def make_colorbar(min, max, width, height):
 # センサーデータ → サーモグラフィ画像出力
 # Input  : input_data = サーモセンサデータ（二次元配列）
 #          sensor_width, sensor_height = サーモセンサデータサイズ
-#          min, max   = カラーグラデーション最小最大値
 #          width      = 出力画像水平サイズ
 #          height     = 出力画像垂直サイズ
 # Return : thermo_array = サーモグラフィ画像データ
 # ------------------------------
-def make_thermograph(input_data, sensor_width, sensor_height, min, max, width, height):
+def make_thermograph(input_data, sensor_width, sensor_height, width, height):
     # 3次元RGBデータ（RGB値の二次元配列）
     rgb_array = [[[0]*3 for i in range(sensor_height)] for x in range(sensor_width)]
 
     # 入力データ → RGB配列データ
-    thermo2rgb(input_data, sensor_width, sensor_height, min, max, rgb_array)
+    thermo2rgb(input_data, sensor_width, sensor_height, _thermo_min, _thermo_max, rgb_array)
 
     # 配列データ → 画像ファイル
     img = np.asarray(rgb_array)
@@ -243,7 +274,8 @@ def close_disp():
 # Return1 : True: 成功, False: エラー,
 # Return2 : True: 長押し, 
 # ------------------------------
-def out_disp(img, colorbar_img, status_text, status_pos, bg_color, body_temp, sensor_data, face_rect, face_detect):
+def out_disp(img, colorbar_img, status_text, status_pos, bg_color, body_temp, sensor_data, face_rect):
+    global _face_detect
     if img is None:
         # 指定パスの画像がない場合は既定ファイルを読み込む
         img = pygame.image.load(READ_ERR_IMAGE)
@@ -256,12 +288,16 @@ def out_disp(img, colorbar_img, status_text, status_pos, bg_color, body_temp, se
     # サーモグラフィ画像作成,
     global _thermo_grf_width, _thermo_grf_height
     if setting.sensor == 0:
-        thermo_img = make_thermograph(sensor_data, 8, 8, setting.colorbar_min, setting.colorbar_max,\
-                                      _thermo_grf_width, _thermo_grf_height)
+        thermo_img = make_thermograph(sensor_data, 8, 8, _thermo_grf_width, _thermo_grf_height)
     else:
+        # 時間計測開始
+        #t1 = time.time()
         # 新センサ 80x60
-        thermo_img = make_thermograph(sensor_data, 80, 60, setting.colorbar_min, setting.colorbar_max,\
-                                      _thermo_grf_width, _thermo_grf_height)
+        thermo_img = make_thermograph(sensor_data, 80, 60, _thermo_grf_width, _thermo_grf_height)
+        #時間計測終了
+        #t2 = time.time()
+        #elapsed_time = t2 - t1
+        #print(f"経過時間：{elapsed_time}")
 
     # 画像表示
     _screen_pygame.blit(img, (0, 0))
@@ -271,7 +307,7 @@ def out_disp(img, colorbar_img, status_text, status_pos, bg_color, body_temp, se
         _screen_pygame.blit(thermo_img, (setting.comp_ofst_x+20, setting.comp_ofst_y))
 
     # センサ範囲矩形描画
-    if setting.face_detect == 0: 
+    if _face_detect == 0:
         pygame.draw.rect(_screen_pygame, COLOR_SENSOR, SENSOR_RECT, 2)  # 枠線
     else:
         if setting.sensor == 1: 
@@ -288,7 +324,7 @@ def out_disp(img, colorbar_img, status_text, status_pos, bg_color, body_temp, se
     # 体温表示
     if body_temp != 0:
         _body_temp_text = _body_temp_font.render(str(body_temp), True, COLOR_TEXT)
-        if face_detect == 0:
+        if _face_detect == 0:
             draw_text_rect(_body_temp_text, (TEMP_START_POS[0]+5,TEMP_START_POS[1]+2), _body_temp_rect, bg_color)
         else:
             # 右端チェック はみ出す場合は左側に表示 +100はテキストサイズ＋オフセット
