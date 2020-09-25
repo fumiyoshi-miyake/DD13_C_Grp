@@ -54,14 +54,6 @@ def push_back():
     _service_win.destroy()
 
     # 設定ファイル出力
-    '''
-    print('顔検出: {}'.format(set_face._is_facedetect_on))
-    print('サーモグラフィ_サイズ: {}'.format(set_thermo.set_size._thermo_size.name))
-    print('サーモグラフィ_位置: {}'.format(set_thermo.set_pos._thermo_pos.name))
-    print('サーモグラフィ_最高温度: {}'.format(set_thermo.set_temp._temp_max))
-    print('サーモグラフィ_最低温度: {}'.format(set_thermo.set_temp._temp_min))
-    print('体温閾値: {}'.format(set_threshold._temp_threshold))
-    '''
     with open(SERVICE_CSV_FILE, 'w') as ofile:
         writer = csv.writer(ofile)
         writer.writerow(['face_det', set_face._is_facedetect_on])
@@ -81,18 +73,17 @@ def push_back():
 # ------------------------------
 def read_service_csv():
     face_det = setting.face_detect
-    thermo_size = set_thermo.set_size.Size.M
+    thermo_size = 'M'
     thermo_pos = set_thermo.set_pos.Pos.BOTTOM_L
-    thermo_max = '40'
-    thermo_min = '25'
-    thermo_threshold = '37.5'
+    thermo_max = setting.colorbar_max
+    thermo_min = setting.colorbar_min
+    threshold = setting.judge_temp
 
     if os.path.isfile(SERVICE_CSV_FILE):
         with open(SERVICE_CSV_FILE, 'r') as ifile:
             reader = csv.reader(ifile)
             for row in reader:
                 if row[0] == 'face_det':
-                    #print(' detect_1 = {}'.format(row[1]))
                     if row[1] == 'True':
                         face_det = 1
                     else:
@@ -104,18 +95,15 @@ def read_service_csv():
                     #print(' detect_3 = {}'.format(row[1]))
                     thermo_pos = row[1]
                 elif row[0] == 'thermo_max':
-                    #print(' detect_4 = {}'.format(row[1]))
-                    thermo_max = row[1]
+                    thermo_max = int(row[1])
                 elif row[0] == 'thermo_min':
-                    #print(' detect_5 = {}'.format(row[1]))
-                    thermo_min = row[1]
+                    thermo_min = int(row[1])
                 elif row[0] == 'threshold':
-                    #print(' detect_6 = {}'.format(row[1]))
-                    thermo_threshold = row[1]
+                    threshold = float(row[1])
                 else:
                     print('else param = {}'.format(row[1]))
 
-    return face_det, thermo_size, thermo_pos, thermo_max, thermo_min, thermo_threshold
+    return face_det, thermo_size, thermo_pos, thermo_max, thermo_min, threshold
 
 
 # ------------------------------
@@ -134,8 +122,12 @@ def push_end():
 # ------------------------------
 def open_service_mode():
     # サービスモードファイル読み込み
-    face_detect, thermo_size, thermo_pos, thermo_max, thermo_min, thermo_threshold = read_service_csv()
+    face_detect, thermo_size, thermo_pos, thermo_max, thermo_min, threshold = read_service_csv()
     set_face.set_facedetect(face_detect)
+    set_thermo.set_size.set_size(thermo_size)
+    #set_thermo.set_pos.set_pos(thermo_pos)
+    set_thermo.set_temp.set_temp(thermo_max, thermo_min)
+    set_threshold.set_threshold(threshold)
 
     global _service_win
     _service_win = tk.Tk()

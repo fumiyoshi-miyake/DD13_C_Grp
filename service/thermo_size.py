@@ -10,7 +10,7 @@ from service.common import button_on, button_off, make_bg_canvas
 class Size(Enum):
     L = 0     # 1.5倍
     M = 1     # 標準
-    S = 2     # 0.75倍
+    S = 2     # 0.8倍
     ALL = 3   # 全画面表示
     HIDE = 4  # 非表示
 
@@ -189,4 +189,26 @@ def open_win():
 
     return
 
+
+
+# ------------------------------
+# 
+# ------------------------------
+def set_size(size):
+    global _thermo_size
+
+    if size == 'L':
+        _thermo_size = Size.L
+    elif size == 'M':
+        _thermo_size == Size.M
+    elif size == 'S':
+        _thermo_size == Size.S
+    elif size == 'ALL':
+        _thermo_size == Size.ALL
+    elif size == 'HIDE':
+        _thermo_size == Size.HIDE
+    else:
+        _thermo_size == Size.M
+
+    return
 

@@ -9,6 +9,13 @@ import numpy as np
 _temp_threshold_index = 5  #37.5
 _temp_threshold = 37.5
 
+# 体温閾値コンボボックスの上下限値
+THRESHOLD_UPPER = 38.0
+THRESHOLD_LOWER = 37.0
+
+# 体温閾値コンボボックスの刻み
+THRESHOLD_STEP = 0.1
+
 # ボタンフォントサイズ
 FONT_SIZE_BTN = 14
 
@@ -49,7 +56,6 @@ def open_win():
     global combo_threshold
     list_threshold = ['38.0', '37.9', '37.8', '37.7', '37.6', '37.5', '37.4', '37.3', '37.2', '37.1', '37.0']
     combo_threshold = ttk.Combobox(dlg, justify=tk.CENTER, \
-                                #values=list(np.arange(40.0, 25.0, -0.25)), \
                                 values=list_threshold, \
                                 width=6, state='readonly', font=('', 14))
     combo_threshold.grid(column=0, row=1)
@@ -66,3 +72,21 @@ def open_win():
     return
 
  
+# ------------------------------
+# ------------------------------
+def set_threshold(threshold):
+    global _temp_threshold_index
+    global _temp_threshold
+
+    # 温度からコンボボックスのインデックスを探索
+    # 一致がなければデフォルト値
+    index = 0
+    for temp in range(int(THRESHOLD_UPPER*10), int(THRESHOLD_LOWER*10)-1, -int(THRESHOLD_STEP*10)):
+        if temp == int(threshold*10):
+           _temp_threshold_index = index
+           _temp_threshold = threshold
+           break
+        index += 1 
+
+    return
+

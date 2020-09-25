@@ -3,7 +3,7 @@
 import cv2  # face_detect_on のみで使用
 import setting
 import GetBodyTempData
-
+import pygame_util
 
 # 枠色 RGB
 COLOR_NONE = [245, 245, 220]
@@ -55,14 +55,13 @@ TEMP_TEXT_OFFSET_Y = 6
 #TEMP_POS = (480, 360 - TEMP_TEXT_OFFSET_Y)
 TEMP_POS = (TEMP_START_POS[0]+2, TEMP_END_POS[1] - TEMP_TEXT_OFFSET_Y)
 
-
 #温度OK/NGしきい値
-JUDGE_TEMP = 37.5
+_judge_temp = setting.judge_temp
 
 #顔検出パラメータ
-SCALE_FACTOR = 1.15
-MIN_NIGHBORS = 2
-MIN_SIZE = (80,80)
+SCALE_FACTOR = 1.1
+MIN_NIGHBORS = 3
+MIN_SIZE = (40,40)
 
 # 体温データの平均回数
 AVERAGE_COUNT = 4
@@ -93,6 +92,22 @@ def face_select(face_rect):
     return face_rect[index]
 
 # ------------------------------
+# 顔枠が矩形内に収まっているか判定
+# Input  : face_rect = 顔枠
+# Return : 判定結果
+# ------------------------------
+def check_face_pos(face_rect):
+    startx = face_rect[0] 
+    starty = face_rect[1] 
+    endx = face_rect[0] + face_rect[2]
+    endy = face_rect[1] + face_rect[3]
+
+    if startx > pygame_util.SENSOR_RECT_FACE_ON[0][0] and starty > pygame_util.SENSOR_RECT_FACE_ON[0][1] \
+    and endx < pygame_util.SENSOR_RECT_FACE_ON[0][0] + pygame_util.SENSOR_RECT_FACE_ON[1][0] and endy < pygame_util.SENSOR_RECT_FACE_ON[0][1] + pygame_util.SENSOR_RECT_FACE_ON[1][1]:
+        return True
+    return False
+
+# ------------------------------
 # 顔サイズチェック
 # Input  : rect
 #        : sensordata = サーモセンサデータ
@@ -121,12 +136,23 @@ def check_face_size(rect, sensordata):
 #        : text_bg_color = 文字列背景色
 # ------------------------------
 def face_detect_on(camera_img, sensordata, BodyTempArray, BodyTempIndex, SeqCount):
+    global _judge_temp
+    
+    # 高さ・幅・色を取得
+    height, width, color = camera_img.shape
+    # 顔検出の処理効率化のために、写真をリサイズ
+    dst = cv2.resize(camera_img, (int(width / 2), int(height / 2))) 
     # 顔検出の処理効率化のために、写真の情報量を落とす（モノクロにする）
-    grayimg = cv2.cvtColor(camera_img, cv2.COLOR_BGR2GRAY)
+    grayimg = cv2.cvtColor(dst, cv2.COLOR_BGR2GRAY)
+
+    # # 顔検出の処理効率化のために、写真の情報量を落とす（モノクロにする）
+    # grayimg = cv2.cvtColor(camera_img, cv2.COLOR_BGR2GRAY)
 
     # 顔検出を行う
     facerect = face_cascade.detectMultiScale(grayimg, scaleFactor=SCALE_FACTOR, \
                                              minNeighbors=MIN_NIGHBORS, minSize=MIN_SIZE)
+    # # 縮小前のサイズに戻す
+    facerect = facerect * 2 
 
     # ステータスメッセージ初期値
     msgStr = '体温を測定します'
@@ -139,12 +165,20 @@ def face_detect_on(camera_img, sensordata, BodyTempArray, BodyTempIndex, SeqCoun
     face_rect = [0,0,0,0]
 
     # 顔が複数ある場合は、画面中央に近い１つにする
-    if len(facerect) > 1:
-        face_rect = face_select(facerect)
-    elif len(facerect) == 1:
-        face_rect = facerect[0]
+    if len(facerect) == 0:
+        face_pos_judge = False
+    else:
+        if len(facerect) == 1:
+            face_rect = facerect[0]
+        else:
+            face_rect = face_select(facerect)
+        
+        #顔枠がセンサー範囲に収まっているか判定 
+        face_pos_judge = check_face_pos(face_rect)
 
-    # 顔が１つ以上検出
+
+
+    # 体温測定できた顔があるか
     if len(facerect) >= 1:
         #　顔サイズチェック
         bodyTemp = check_face_size(face_rect, sensordata)
@@ -173,7 +207,7 @@ def face_detect_on(camera_img, sensordata, BodyTempArray, BodyTempIndex, SeqCoun
 
             #体温の平均値算出
             bodyTempAve = sum(BodyTempArray) / AVERAGE_COUNT
-            if bodyTempAve >= JUDGE_TEMP:
+            if bodyTempAve >= _judge_temp:
                 msgStr = 'NG  体温異常'
                 text_bg_color = COLOR_NG  # status文字列背景色
             else:
@@ -207,6 +241,8 @@ def face_detect_on(camera_img, sensordata, BodyTempArray, BodyTempIndex, SeqCoun
 #        : bodyTempAve   = 平均体温
 # ------------------------------
 def face_detect_off(sensordata, BodyTempArray, BodyTempIndex, SeqCount):
+    global _judge_temp
+    
     # 温度データから体温取得
     bodyTemp = GetBodyTempData.getTempDataFaceDetOff(sensordata)
     
@@ -249,7 +285,7 @@ def face_detect_off(sensordata, BodyTempArray, BodyTempIndex, SeqCount):
 
         #体温の平均値算出
         bodyTempAve = sum(BodyTempArray) / AVERAGE_COUNT
-        if bodyTempAve >= JUDGE_TEMP:
+        if bodyTempAve >= _judge_temp:
             msgStr = 'NG  体温異常'
             text_bg_color = COLOR_NG  # status文字列背景色
         else:
@@ -270,7 +306,9 @@ def face_detect_off(sensordata, BodyTempArray, BodyTempIndex, SeqCount):
 #        : BodyTempIndex, SeqCount,
 # Return : BodyTempIndex, SeqCount, msgStr, msgPos, text_bg_color, body_temp, face_rect
 # ------------------------------
-def measure(camera_img, sensordata, BodyTempArray, BodyTempIndex, SeqCount, face_detect):   
+def measure(camera_img, sensordata, BodyTempArray, BodyTempIndex, SeqCount, face_detect, threshold):
+    global _judge_temp
+    _judge_temp = threshold
     #顔検出機能ON
     if face_detect == 1:
         BodyTempIndex, SeqCount, msgStr, msgPos, text_bg_color, body_temp, face_rect = \

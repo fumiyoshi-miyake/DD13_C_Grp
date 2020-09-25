@@ -1,6 +1,7 @@
 import numpy as np
 import module
 import setting
+import pygame_util
 
 # 温度測定判定で使用する温度しきい値
 TEMPERATURE_TH = 34.0
@@ -100,7 +101,7 @@ else:
     CHANGE_OFFSET_TEMP = 2.0
 
     # センサ1画素あたりのカメラ画素
-    SENSOR_TO_CAMERA_PIXCEL = 8
+    SENSOR_TO_CAMERA_PIXCEL = 6
 
     # 周辺温度が最低の時のオフセット値
     MIN_OFFSET_TEMP = 2.0
@@ -250,16 +251,16 @@ def getTempDataFaceDetOn(inTemp, isDetFace, rect):
        return 0
 
     #枠の領域計算(pixel)
-    startX = rect[0]
-    endX   = rect[0] + rect[2]
-    startY = rect[1]
-    endY2  = rect[1] + rect[3]
+    startX = rect[0] - pygame_util.SENSOR_RECT_FACE_ON[0][0]
+    endX   = startX + rect[2] 
+    startY = rect[1] - pygame_util.SENSOR_RECT_FACE_ON[0][1]
+    endY  = startY + rect[3]
 
     #枠の領域(pixel)から温度データ配列のインデックスに変換
     x1 = int(startX / SENSOR_TO_CAMERA_PIXCEL)
     x2 = int(endX   / SENSOR_TO_CAMERA_PIXCEL) + 1
     y1 = int(startY / SENSOR_TO_CAMERA_PIXCEL) + 1
-    y2 = int(endY2  / SENSOR_TO_CAMERA_PIXCEL) + 1 + 1
+    y2 = int(endY  / SENSOR_TO_CAMERA_PIXCEL) + 1 + 1
 
     # NumPy配列 ndarrayに変換
     tmp = np.array(inTemp)
