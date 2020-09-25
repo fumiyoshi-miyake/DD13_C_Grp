@@ -59,9 +59,9 @@ TEMP_POS = (TEMP_START_POS[0]+2, TEMP_END_POS[1] - TEMP_TEXT_OFFSET_Y)
 _judge_temp = setting.judge_temp
 
 #顔検出パラメータ
-SCALE_FACTOR = 1.15
-MIN_NIGHBORS = 2
-MIN_SIZE = (80,80)
+SCALE_FACTOR = 1.1
+MIN_NIGHBORS = 3
+MIN_SIZE = (40,40)
 
 # 体温データの平均回数
 AVERAGE_COUNT = 4
@@ -138,12 +138,21 @@ def check_face_size(rect, sensordata):
 def face_detect_on(camera_img, sensordata, BodyTempArray, BodyTempIndex, SeqCount):
     global _judge_temp
     
+    # 高さ・幅・色を取得
+    height, width, color = camera_img.shape
+    # 顔検出の処理効率化のために、写真をリサイズ
+    dst = cv2.resize(camera_img, (int(width / 2), int(height / 2))) 
     # 顔検出の処理効率化のために、写真の情報量を落とす（モノクロにする）
-    grayimg = cv2.cvtColor(camera_img, cv2.COLOR_BGR2GRAY)
+    grayimg = cv2.cvtColor(dst, cv2.COLOR_BGR2GRAY)
+
+    # # 顔検出の処理効率化のために、写真の情報量を落とす（モノクロにする）
+    # grayimg = cv2.cvtColor(camera_img, cv2.COLOR_BGR2GRAY)
 
     # 顔検出を行う
     facerect = face_cascade.detectMultiScale(grayimg, scaleFactor=SCALE_FACTOR, \
                                              minNeighbors=MIN_NIGHBORS, minSize=MIN_SIZE)
+    # # 縮小前のサイズに戻す
+    facerect = facerect * 2 
 
     # ステータスメッセージ初期値
     msgStr = '体温を測定します'
