@@ -19,9 +19,6 @@ import time
 # 入力ファイルパスが表示できなかった場合に表示する画像
 READ_ERR_IMAGE = 'read_err_image.jpg'
 
-# 表示ウィンドウ名
-WIN_NAME = 'C_Grp'  # (仮)
-
 # センサー座標
 if setting.sensor == 0:
     SENSOR_RECT_FACE_ON = ((0, 0), (640,480))
@@ -124,6 +121,9 @@ _thermo_pos = Pos.BOTTOM_L  # サーモグラフィ画像位置設定
 _thermo_max = setting.colorbar_max  # サーモグラフィ最高温度設定
 _thermo_min = setting.colorbar_min  # サーモグラフィ最低温度設定
 
+# カメラ画像表示サイズ (ディスプレイ解像度で設定する)
+_disp_width  = 640
+_disp_height = 480
 
 # ------------------------------
 # サービスモードで変更可能な設定値の設定
@@ -156,7 +156,7 @@ def set_param(face_detect, size, pos, temp_max, temp_min):
                         setting.comp_ofst_x+_color_bar_width, setting.comp_ofst_y+18)
     elif size == 'ALL':
         _thermo_size = Size.ALL
-        set_thermo_size(640, 480)
+        set_thermo_size(_disp_width, _disp_height)
         set_thermo_img_pos(0, 0, 0, 0)
     else:
         _thermo_size = Size.HIDE
@@ -271,10 +271,17 @@ def open_disp():
     #width_pixel, height_pixel = getResolution()
     width_pixel, height_pixel = ('640', '480')  # ★仮★
 
+    # ディスプレイ表示サイズ設定
+    global _disp_width
+    global _disp_height
+    _disp_width  = int(width_pixel)
+    _disp_height = int(height_pixel)  # タイトルバー分の調整が必要かも★
+
     pygame.init()
     global _screen_pygame
     _screen_pygame = pygame.display.set_mode((int(width_pixel), int(height_pixel)))
-    pygame.display.set_caption(WIN_NAME) 
+    #_screen_pygame = pygame.display.set_mode((int(width_pixel), int(height_pixel)), FULLSCREEN)
+    pygame.display.set_caption(' ') # 設定しないと pygame window になる
 
     # status文字列 背景範囲＆フォント作成
     global _status_text
@@ -327,19 +334,25 @@ def out_disp(img, colorbar_img, status_text, status_pos, bg_color, body_temp, se
             pygame.quit()
         return False, False
 
+    # カメラ画像拡大
+    #global _disp_width
+    #global _disp_height
+    img = pygame.transform.scale(img, (_disp_width, _disp_height))
+
     # サーモグラフィ画像作成,
     global _thermo_grf_width, _thermo_grf_height
-    if setting.sensor == 0:
-        thermo_img = make_thermograph(sensor_data, 8, 8, _thermo_grf_width, _thermo_grf_height)
-    else:
-        # 時間計測開始
-        #t1 = time.time()
-        # 新センサ 80x60
-        thermo_img = make_thermograph(sensor_data, 80, 60, _thermo_grf_width, _thermo_grf_height)
-        #時間計測終了
-        #t2 = time.time()
-        #elapsed_time = t2 - t1
-        #print(f"経過時間：{elapsed_time}")
+    if _thermo_grf_width > 0:
+        if setting.sensor == 0:
+            thermo_img = make_thermograph(sensor_data, 8, 8, _thermo_grf_width, _thermo_grf_height)
+        else:
+            # 時間計測開始
+            #t1 = time.time()
+            # 新センサ 80x60
+            thermo_img = make_thermograph(sensor_data, 80, 60, _thermo_grf_width, _thermo_grf_height)
+            #時間計測終了
+            #t2 = time.time()
+            #elapsed_time = t2 - t1
+            #print(f"経過時間：{elapsed_time}")
 
     # 画像表示
     _screen_pygame.blit(img, (0, 0))
