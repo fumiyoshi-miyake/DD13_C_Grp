@@ -200,15 +200,15 @@ def set_size(size):
     if size == 'L':
         _thermo_size = Size.L
     elif size == 'M':
-        _thermo_size == Size.M
+        _thermo_size = Size.M
     elif size == 'S':
-        _thermo_size == Size.S
+        _thermo_size = Size.S
     elif size == 'ALL':
-        _thermo_size == Size.ALL
+        _thermo_size = Size.ALL
     elif size == 'HIDE':
-        _thermo_size == Size.HIDE
+        _thermo_size = Size.HIDE
     else:
-        _thermo_size == Size.M
+        _thermo_size = Size.M
 
     return
 
