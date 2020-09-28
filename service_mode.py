@@ -89,7 +89,6 @@ def read_service_csv():
                     else:
                         face_det = 0
                 elif row[0] == 'thermo_size':
-                    #print(' detect_2 = {}'.format(row[1]))
                     thermo_size = row[1]
                 elif row[0] == 'thermo_pos':
                     #print(' detect_3 = {}'.format(row[1]))
