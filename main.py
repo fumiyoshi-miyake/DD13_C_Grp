@@ -18,6 +18,7 @@ from pygame_util import out_disp
 from pygame_util import close_disp
 from pygame_util import startMsg_disp
 from pygame_util import set_param
+from pygame_util import clear_disp
 
 from calc import measure
 from calc import AVERAGE_COUNT
@@ -181,25 +182,10 @@ try:
                 face_detect, thermo_size, thermo_pos, thermo_max, thermo_min, temp_threshold = read_service_csv()
                 set_param(face_detect, thermo_size, thermo_pos, thermo_max, thermo_min)
 
-                '''
-                # 顔検出モードが変更していたらカメラを切り替える
-                if face_detect != before_face_detect:
-                    # カメラ終了
-                    camera.close()
-
-                    # カメラ初期化
-                    if face_detect == 0:
-                        # 顔検知OFF
-                        camera = pygame_camera.Camera(setting.resolution_width, \
-                                    setting.resolution_height, setting.debug)
-                    else:
-                        # 顔検知ON
-                        camera = raspicamera.Camera(setting.resolution_width, \
-                                    setting.resolution_height, setting.debug)
-                '''
- 
                 # サーモグラフィ画像サイズが変更していたらカラーバーも再生成する
                 if thermo_size != before_thermo_size:
+                    # 画面クリア
+                    clear_disp()
                     # カラーバー再生成
                     colorbar_img = make_colorbar()
                     
@@ -247,6 +233,8 @@ try:
 
                 # サーモグラフィ画像サイズが変更していたらカラーバーも再生成する
                 if thermo_size != before_thermo_size:
+                    # 画面クリア
+                    clear_disp()
                     # カラーバー再生成
                     colorbar_img = make_colorbar()
                     
