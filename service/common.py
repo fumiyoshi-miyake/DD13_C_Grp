@@ -1,7 +1,7 @@
 # common.py
 
 import tkinter as tk
-
+import setting
 
 # 色
 COLOR_BG_DEF = '#D9D9D9'  # 背景 初期色
@@ -12,6 +12,16 @@ FONT_SIZE_BTN = 14
 # 強調表示（ボタン背景Canvas）設定
 BUTTON_BG_COLOR = 'black'
 
+# 選択状態矩形サイズ
+# 実機
+if setting.mode == 0:
+    BG_ROW_WIDTH   = 130
+    BG_ROW1_HEIGHT = 83   # 1行用
+    BG_ROW2_HEIGHT = 62   # 2行用
+else:
+    BG_ROW_WIDTH   = 157
+    BG_ROW1_HEIGHT = 106  # 1行用
+    BG_ROW2_HEIGHT = 79   # 2行用
 
 # ------------------------------
 # ボタン 選択

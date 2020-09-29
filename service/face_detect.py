@@ -3,6 +3,8 @@
 import tkinter as tk
 
 from service.common import button_on, button_off, make_bg_canvas
+from service.common import BG_ROW_WIDTH, BG_ROW1_HEIGHT, BG_ROW2_HEIGHT
+
 from functools import partial
 
 # 顔検出 [On: True, Off: False]
@@ -69,8 +71,10 @@ def open_win():
     global line_facedetect_on
     global line_facedetect_off
 
-    line_facedetect_on  = make_bg_canvas(dlg, 157, 106)
-    line_facedetect_off = make_bg_canvas(dlg, 157, 106)
+    bg_width  = BG_ROW_WIDTH
+    bg_height = BG_ROW1_HEIGHT
+    line_facedetect_on  = make_bg_canvas(dlg, BG_ROW_WIDTH, BG_ROW1_HEIGHT)
+    line_facedetect_off = make_bg_canvas(dlg, BG_ROW_WIDTH, BG_ROW1_HEIGHT)
     
     button_facedetect_on  = tk.Button(dlg, text='ON', width=11, height=3, \
                                 font=('', FONT_SIZE_BTN), command=push_on) 

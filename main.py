@@ -181,6 +181,7 @@ try:
                 face_detect, thermo_size, thermo_pos, thermo_max, thermo_min, temp_threshold = read_service_csv()
                 set_param(face_detect, thermo_size, thermo_pos, thermo_max, thermo_min)
 
+                '''
                 # 顔検出モードが変更していたらカメラを切り替える
                 if face_detect != before_face_detect:
                     # カメラ終了
@@ -195,6 +196,7 @@ try:
                         # 顔検知ON
                         camera = raspicamera.Camera(setting.resolution_width, \
                                     setting.resolution_height, setting.debug)
+                '''
  
                 # サーモグラフィ画像サイズが変更していたらカラーバーも再生成する
                 if thermo_size != before_thermo_size:
