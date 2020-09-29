@@ -165,7 +165,7 @@ def set_param(face_detect, size, pos, temp_max, temp_min):
     elif size == 'ALL':
         _thermo_size = Size.ALL
         set_thermo_size(480, 360)
-        set_thermo_img_pos(60, 70, 80, 70)
+        set_thermo_img_pos(60, 90, 80, 90)
     else:
         _thermo_size = Size.HIDE
         set_thermo_size(0, 0)

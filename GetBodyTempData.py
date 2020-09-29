@@ -4,7 +4,8 @@ import setting
 import pygame_util
 
 # 温度測定判定で使用する温度しきい値
-TEMPERATURE_TH = 34.0
+#TEMPERATURE_TH = 34.0
+TEMPERATURE_TH = 35.0
 
 # 体温オフセット値変更しきい値
 CHNAGE_OFFSET_TEMP_MAX = 29.375
@@ -77,7 +78,8 @@ if setting.sensor == 0:
 else:
 ##### Lepton2.5
     # 温度測定判定で使用する温度しきい値以上のデータ数のしきい値
-    AVERAGE_COUNT_TH = 390
+    #AVERAGE_COUNT_TH = 390 #非マスク調整
+    AVERAGE_COUNT_TH = 180  #マスク調整
     # 測定手法（0:平均値, 1:最大値）
     MEASUREMENT_METHOD = 0
 
@@ -94,10 +96,12 @@ else:
     DIS_CHK_AREA_END_LINE_Y = 46
 
     # 測定距離判定TH TH以上のとき測定しない MAX=1200
-    DIS_CHK_AREA_TH = 1000
+    #DIS_CHK_AREA_TH = 1000 #非マスク調整
+    DIS_CHK_AREA_TH = 600   #マスク調整
 
     # 体温のオフセット値(Leptonは未調整なので固定)
-    offset_temp = 4.3
+    #offset_temp = 4.3
+    offset_temp = 5.3
 
     # キャリブレーション実行判定　最高温度と最低温度の差
     CHANGE_OFFSET_TEMP = 2.0
@@ -111,11 +115,11 @@ else:
     MAX_OFFSET_TEMP = 2.0
 
     # 遠い時の温度補正するかどうかのしきい値
-    #DIS_ADJ_FAR_TH = 320
-    DIS_ADJ_FAR_TH = 400
+    #DIS_ADJ_FAR_TH = 400 #非マスク調整
+    DIS_ADJ_FAR_TH = 320  #マスク調整
     # 近い時の温度補正するかどうかのしきい値
-    #DIS_ADJ_NEAR_TH = 850
-    DIS_ADJ_NEAR_TH = 900
+    #DIS_ADJ_NEAR_TH = 900 #非マスク調整
+    DIS_ADJ_NEAR_TH = 500 #マスク調整
 
     # 顔サイズ別オフセット値
     SIZE_OFFSET_400 = -2
@@ -206,20 +210,20 @@ def getTempDataFaceDetOff(inTemp):
        # 距離によるOFFSET値 （注意：サーモ用データには反映していない）
        if countTemp < DIS_ADJ_FAR_TH:
            outTemp += 0.5
-       elif countTemp < 420:
+       elif countTemp < DIS_ADJ_FAR_TH + 20:
            outTemp += 0.4
-       elif countTemp < 440:
+       elif countTemp < DIS_ADJ_FAR_TH + 40:
            outTemp += 0.3
-       elif countTemp < 460:
+       elif countTemp < DIS_ADJ_FAR_TH + 60:
            outTemp += 0.2
-       elif countTemp < 480:
+       elif countTemp < DIS_ADJ_FAR_TH + 80:
            outTemp += 0.1
 
        if countTemp > DIS_ADJ_NEAR_TH:
            outTemp -= 0.2
        #elif countTemp > 880:
        #    outTemp -= 0.4
-       elif countTemp > 860:
+       elif countTemp > DIS_ADJ_NEAR_TH - 40:
            outTemp -= 0.1
        #elif countTemp > 840:
        #    outTemp -= 0.2
@@ -318,7 +322,7 @@ def getTempDataFaceDetOn(inTemp, isDetFace, rect):
 
     # しきい値以上の温度データが得られたら、温度データを返却する
     #if np.count_nonzero(TempDataArray >= TEMPERATURE_TH) >= AVERAGE_COUNT_TH:
-    if np.count_nonzero(TempDataArray >= TEMPERATURE_TH) >= 100:
+    if np.count_nonzero(TempDataArray >= TEMPERATURE_TH) >= 30:
         # 平均値出力
         if MEASUREMENT_METHOD == 0:
             #outTemp = np.average(TempDataArray)
