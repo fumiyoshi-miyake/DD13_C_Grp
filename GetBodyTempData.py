@@ -77,7 +77,7 @@ if setting.sensor == 0:
 else:
 ##### Lepton2.5
     # 温度測定判定で使用する温度しきい値以上のデータ数のしきい値
-    AVERAGE_COUNT_TH = 350
+    AVERAGE_COUNT_TH = 390
     # 測定手法（0:平均値, 1:最大値）
     MEASUREMENT_METHOD = 0
 
@@ -111,7 +111,7 @@ else:
     MAX_OFFSET_TEMP = 2.0
 
     # 遠い時の温度補正するかどうかのしきい値
-    DIS_ADJ_FAR_TH = 320
+    #DIS_ADJ_FAR_TH = 320
     DIS_ADJ_FAR_TH = 400
     # 近い時の温度補正するかどうかのしきい値
     #DIS_ADJ_NEAR_TH = 850
@@ -271,9 +271,11 @@ def getTempDataFaceDetOn(inTemp, isDetFace, rect):
        return 0
 
     #枠の領域計算(pixel)
-    startX = rect[0] - pygame_util.SENSOR_RECT_FACE_ON[0][0]
+    #startX = rect[0] - pygame_util.SENSOR_RECT_FACE_ON[0][0]
+    startX = rect[0]
     endX   = startX + rect[2] 
-    startY = rect[1] - pygame_util.SENSOR_RECT_FACE_ON[0][1]
+    #startY = rect[1] - pygame_util.SENSOR_RECT_FACE_ON[0][1]
+    startY = rect[1]
     endY  = startY + rect[3]
 
     #枠の領域(pixel)から温度データ配列のインデックスに変換

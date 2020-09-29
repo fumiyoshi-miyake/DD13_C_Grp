@@ -90,12 +90,13 @@ try:
             sensor = Lepton.Sensor("/dev/spidev0.0")
 
         # カメラ初期化
-        if face_detect == 0:
-            # 顔検知OFF
-            camera = pygame_camera.Camera(setting.resolution_width, setting.resolution_height, setting.debug)
-        else:
-            # 顔検知ON
-            camera = raspicamera.Camera(setting.resolution_width, setting.resolution_height, setting.debug)
+        #if face_detect == 0:
+        #    # 顔検知OFF
+        #    camera = pygame_camera.Camera(setting.resolution_width, setting.resolution_height, setting.debug)
+        #else:
+        #    # 顔検知ON
+        #    camera = raspicamera.Camera(setting.resolution_width, setting.resolution_height, setting.debug)
+        camera = raspicamera.Camera(setting.resolution_width, setting.resolution_height, setting.debug)
 
     # Sim
     else:
@@ -119,6 +120,13 @@ try:
             # 時間計測開始
             #t1 = time.time()
 
+            # カメラから映像を取得する
+            camera_img1 = camera.capture()
+            if setting.sensor: #Lepton
+                camera_img = camera_img1[70: 430,  60: 540]
+            else:
+                camera_img = camera_img1
+
             # センサデータ取得
             sensordata = sensor.GetData()
             #print('------ Thermo Data -------')
@@ -130,7 +138,7 @@ try:
                 GetBodyTempData.setOffsetTempData(sensordata)
 
             # カメラから映像を取得する
-            camera_img = camera.capture()
+            #camera_img1 = camera.capture()
 
             # 測定
             BodyTempIndex, SeqCount, msgStr, msgPos, text_bg_color, bodyTemp, face_rect = \
@@ -138,8 +146,9 @@ try:
                         SeqCount, face_detect, temp_threshold)
 
             # OpenCV_data → Pygame_data
-            if face_detect == 1: #顔検知ON
-                camera_img = convert_opencv_img_to_pygame(camera_img)
+            #if face_detect == 1: #顔検知ON
+            #    camera_img = convert_opencv_img_to_pygame(camera_img)
+            camera_img = convert_opencv_img_to_pygame(camera_img)
 
             # 結果の画像を表示する
             disp_ret, service_mode_on = \
