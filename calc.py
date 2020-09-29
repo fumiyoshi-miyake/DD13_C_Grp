@@ -233,7 +233,7 @@ def face_detect_on(camera_img, sensordata, BodyTempArray, BodyTempIndex, SeqCoun
         msgPos = (204, STATUS_TEXT_POS_Y)  # ステータステキスト表示位置
         text_bg_color = [255, 255, 255]  # status文字列背景色
 
-    return BodyTempIndex, SeqCount, msgStr, msgPos, text_bg_color, round(bodyTempAve, 1), face_rect
+    return BodyTempIndex, SeqCount, msgStr, msgPos, text_bg_color, round(int(bodyTempAve*10)/10.0, 1), face_rect
 
 
 # ------------------------------
@@ -302,7 +302,7 @@ def face_detect_off(sensordata, BodyTempArray, BodyTempIndex, SeqCount):
         msgPos = STATUS_TEXT_OK_NG_POS  # ステータステキスト表示位置
 
     # 体温は小数第2位を四捨五入
-    return BodyTempIndex, SeqCount, msgStr, msgPos, text_bg_color, round(bodyTempAve, 1)
+    return BodyTempIndex, SeqCount, msgStr, msgPos, text_bg_color, round(int(bodyTempAve*10)/10.0, 1)
 
 
 # ------------------------------
