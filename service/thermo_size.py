@@ -174,7 +174,7 @@ def open_win():
     line_all.place(x=col[0]-5, y=row[1]-5)
     line_hide.place(x=col[1]-5, y=row[1]-5)
     
-    button_back.place(x=440, y=300)
+    button_back.place(x=400, y=300)
 
 
     if _thermo_size == Size.L:

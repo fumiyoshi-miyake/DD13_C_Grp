@@ -60,8 +60,6 @@ def open_win():
     dlg.grab_set()  # モーダル
 
     # Widget 作成
-    #label_msg = tk.Label(dlg, text='顔検出', foreground='#0000FF', background='#FFFF00', font=("", 16))
-    #label_msg = tk.Label(dlg, text='顔検出', foreground='#FFFFFF', background='#4472C4', font=("", 16))
     label_msg = tk.Label(dlg, text='顔検出', font=("", 16))
     label_msg.place(x=280, y=30)
 
