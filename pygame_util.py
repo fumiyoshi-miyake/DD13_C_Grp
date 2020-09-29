@@ -343,29 +343,16 @@ def out_disp(img, colorbar_img, status_text, status_pos, bg_color, body_temp, se
             pygame.quit()
         return False, False
 
-    # カメラ画像拡大
-    #global _disp_width
-    #global _disp_height
-    #img = pygame.transform.scale(img, (_disp_width, _disp_height))
-
     # サーモグラフィ画像作成,
     global _thermo_grf_width, _thermo_grf_height
     if _thermo_grf_width > 0:
         if setting.sensor == 0:
             thermo_img = make_thermograph(sensor_data, 8, 8, _thermo_grf_width, _thermo_grf_height)
         else:
-            # 時間計測開始
-            #t1 = time.time()
             # 新センサ 80x60
             thermo_img = make_thermograph(sensor_data, 80, 60, _thermo_grf_width, _thermo_grf_height)
-            #時間計測終了
-            #t2 = time.time()
-            #elapsed_time = t2 - t1
-            #print(f"経過時間：{elapsed_time}")
 
     # 画像表示
-    #_screen_pygame.blit(img, (0, 0))
-    #_screen_pygame.blit(img, (80, 40), (70, 60, 480, 360))
     _screen_pygame.blit(img, (80, 40))
     global _color_bar_width, _color_bar_height
     global _colorbar_pos_y, _colorbar_pos_x
@@ -497,6 +484,14 @@ def startMsg_disp():
     start_msg = pygame.image.load("start_msg.jpg")
     screen.blit(start_msg, (0, 0))
     pygame.display.update()
+
+
+# ------------------------------
+# 画面クリア（黒色で塗り潰す）
+# ------------------------------
+def clear_disp():
+    _screen_pygame.fill((0, 0, 0))
+    return
 
 
 # 暫定版 変換処理 (入力がPygameデータになれば変換は不要になるので削除する)
