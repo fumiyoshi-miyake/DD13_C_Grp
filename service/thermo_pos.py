@@ -5,6 +5,7 @@ from functools import partial
 from enum import Enum
 
 from service.common import button_on, button_off, make_bg_canvas
+from service.common import BG_ROW_WIDTH, BG_ROW1_HEIGHT, BG_ROW2_HEIGHT
 
 
 # 位置
@@ -114,8 +115,8 @@ def open_win():
     global line_left_bottom
     global line_right_bottom
  
-    bg_width  = 157
-    bg_height = 79
+    bg_width  = BG_ROW_WIDTH
+    bg_height = BG_ROW2_HEIGHT
     line_left_top  = make_bg_canvas(dlg, bg_width, bg_height)
     line_right_top = make_bg_canvas(dlg, bg_width, bg_height)
     line_left_bottom  = make_bg_canvas(dlg, bg_width, bg_height)

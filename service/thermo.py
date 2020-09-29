@@ -59,8 +59,8 @@ def open_win():
 
     button_size = tk.Button(dlg, text='サイズ設定', width=11, height=3, \
                         font=('', FONT_SIZE_BTN), command=push_set_size) 
-    button_pos  = tk.Button(dlg, text='位置設定', width=11, height=3, \
-                        font=('', FONT_SIZE_BTN), command=push_set_pos)
+    #button_pos  = tk.Button(dlg, text='位置設定', width=11, height=3, \
+    #                    font=('', FONT_SIZE_BTN), command=push_set_pos)
     button_temp = tk.Button(dlg, text='温度設定', width=11, height=3, \
                         font=('', FONT_SIZE_BTN), command=push_set_temp)
 
@@ -69,7 +69,7 @@ def open_win():
 
     # 配置
     button_size.place(x=70, y=100)
-    button_pos.place(x=240, y=100)
+    #button_pos.place(x=240, y=100)
     button_temp.place(x=410, y=100)
     
     button_back.place(x=440, y=300)

@@ -127,6 +127,9 @@ _thermo_min = setting.colorbar_min  # サーモグラフィ最低温度設定
 _disp_width  = 640
 _disp_height = 480
 
+# 長押しと判定する回数
+LONG_PRESS_LIMIT = 3
+
 # ------------------------------
 # サービスモードで変更可能な設定値の設定
 # face_detect : 顔検出On/Off設定
@@ -272,6 +275,7 @@ def open_disp():
     #解像度取得
     #width_pixel, height_pixel = getResolution()
     width_pixel, height_pixel = ('640', '480')  # ★仮★
+    #width_pixel, height_pixel = ('480', '360')  # ★仮★
 
     # ディスプレイ表示サイズ設定
     global _disp_width
@@ -410,13 +414,13 @@ def out_disp(img, colorbar_img, status_text, status_pos, bg_color, body_temp, se
     global _long_press
     # イベント取得
     for event in pygame.event.get():
-        # 閉じるボタンが押された時の処理
-        if event.type == QUIT:
-            pygame.quit()
-            return False, False
+        # 閉じるボタンが押された時の処理 → 無効化
+        #if event.type == QUIT:
+        #    pygame.quit()
+        #    return False, False
 
         # マウスイベント
-        elif event.type == pygame.MOUSEBUTTONUP:
+        if event.type == pygame.MOUSEBUTTONUP:
             # 長押しカウントクリア
             _press_count = 0
             if _long_press:
@@ -428,7 +432,7 @@ def out_disp(img, colorbar_img, status_text, status_pos, bg_color, body_temp, se
     mouse_pressed = pygame.mouse.get_pressed()
     if mouse_pressed[0]:
         _press_count += 1
-        if _press_count > 10:   # 一定のカウント以上で長押しと判定
+        if _press_count > LONG_PRESS_LIMIT:   # 一定のカウント以上で長押しと判定
             print('長押し検出！')
             _long_press = True
 
@@ -467,9 +471,10 @@ def set_thermo_img_pos(colbar_x, colbar_y, thermo_x, thermo_y):
     global _colorbar_pos_y, _colorbar_pos_x
     global _thermogrf_pos_y, _thermogrf_pos_x
 
-    _colorbar_pos_y = colbar_y
+    # 解像度が480→375になったので-105, setting.pyで既に-5してるので-100
+    _colorbar_pos_y = colbar_y -100
     _colorbar_pos_x = colbar_x
-    _thermogrf_pos_y = thermo_y
+    _thermogrf_pos_y = thermo_y -100
     _thermogrf_pos_x = thermo_x
 
     return
