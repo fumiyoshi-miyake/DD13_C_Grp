@@ -151,20 +151,18 @@ def open_service_mode():
     button_back = tk.Button(text='戻る', width=BTN_W, height=BTN_H, \
                             font=('', FONT_SIZE_BTN), command=push_back) 
                             
-    button_end  = tk.Button(text='システム終了', width=10, height=1, \
+    button_end  = tk.Button(text='システム終了', width=12, height=1, \
                             font=('', FONT_SIZE_BTN), command=push_end)
 
     # ボタン配置
-    col = [50, 340, 0]       # ボタンx座標
+    col = [50, 340]            # ボタンx座標
     row = [30, 150, 300, 350]  # ボタンy座標
     button_facedetect.place(x=col[0], y=row[0])
     button_thermo.place(x=col[1], y=row[0])
     button_threshold.place(x=col[0], y=row[1])
 
     button_back.place(x=col[1], y=row[2])
-
-    button_end.place(x=col[2], y=row[3])
-
+    button_end.place(x=col[0], y=row[3])
 
     _service_win.mainloop()
 

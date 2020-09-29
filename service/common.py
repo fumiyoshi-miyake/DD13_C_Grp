@@ -15,7 +15,7 @@ BUTTON_BG_COLOR = 'black'
 # 選択状態矩形サイズ
 # 実機
 if setting.mode == 0:
-    BG_ROW_WIDTH   = 130
+    BG_ROW_WIDTH   = 132
     BG_ROW1_HEIGHT = 83   # 1行用
     BG_ROW2_HEIGHT = 62   # 2行用
 else:
