@@ -236,29 +236,54 @@ def getTempDataFaceDetOn(inTemp, isDetFace, rect):
 
     offset = offset_temp
     # 顔サイズによる温度オフセット(できるだけ細かく調整)
-    if rect[2] > 400:
-        offset += SIZE_OFFSET_400
-    elif rect[2] > 350:
-        offset += SIZE_OFFSET_350
-    elif rect[2] > 300:
-        offset += SIZE_OFFSET_300
-    elif rect[2] > 250:
-        offset += SIZE_OFFSET_250
-    elif rect[2] > 200:
-        offset += SIZE_OFFSET_200
-    elif rect[2] > 170:
-        offset += SIZE_OFFSET_170
-    elif rect[2] > 150:
-        offset += SIZE_OFFSET_150
-    elif rect[2] > 130:
-        offset += SIZE_OFFSET_130
-    elif rect[2] > 100:
-        offset += SIZE_OFFSET_100
-    elif rect[2] == 0:
-        offset += 0    
-    else:
-        offset += SIZE_OFFSET_ELSE
 
+    #if rect[2] > 400:
+    #    offset += SIZE_OFFSET_400
+    #elif rect[2] > 350:
+    #    offset += SIZE_OFFSET_350
+    #elif rect[2] > 300:
+    #    offset += SIZE_OFFSET_300
+    #elif rect[2] > 250:
+    #    offset += SIZE_OFFSET_250
+    #elif rect[2] > 200:
+    #    offset += SIZE_OFFSET_200
+    #elif rect[2] > 170:
+    #    offset += SIZE_OFFSET_170
+    #elif rect[2] > 150:
+    #    offset += SIZE_OFFSET_150
+    #elif rect[2] > 130:
+    #    offset += SIZE_OFFSET_130
+    #elif rect[2] > 100:
+    #    offset += SIZE_OFFSET_100
+    #elif rect[2] == 0:
+    #    offset += 0    
+    #else:
+    #    offset += SIZE_OFFSET_ELSE
+
+    if rect[2] > 200:
+        offset += -0.5
+    elif rect[2] > 180: #40センチ以下
+        offset += -0.3
+    elif rect[2] > 160: #50センチ以下
+        offset += -0.2
+    elif rect[2] > 150: #60センチ以下
+        offset += 0
+    elif rect[2] > 140: #70センチ以下
+        offset += 0
+    elif rect[2] > 130: #80センチ以下
+        offset += 0.1
+    elif rect[2] > 120: #90センチ以下
+        offset += 0.1
+    elif rect[2] > 110: #100センチ以下
+        offset += 0.2
+    elif rect[2] > 100: #110センチ以下
+        offset += 0.2
+    elif rect[2] > 90:  #120センチ以下
+        offset += 0.3
+    elif rect[2] > 80:  #130センチ以下
+        offset += 0.3
+    else:
+        offset += 0.5
 
     # センサ解像度分ループ
     for i in range(module.row_count):
@@ -292,7 +317,8 @@ def getTempDataFaceDetOn(inTemp, isDetFace, rect):
     #print(TempDataArray)
 
     # しきい値以上の温度データが得られたら、温度データを返却する
-    if np.count_nonzero(TempDataArray >= TEMPERATURE_TH) >= AVERAGE_COUNT_TH:
+    #if np.count_nonzero(TempDataArray >= TEMPERATURE_TH) >= AVERAGE_COUNT_TH:
+    if np.count_nonzero(TempDataArray >= TEMPERATURE_TH) >= 100:
         # 平均値出力
         if MEASUREMENT_METHOD == 0:
             #outTemp = np.average(TempDataArray)
@@ -302,5 +328,6 @@ def getTempDataFaceDetOn(inTemp, isDetFace, rect):
             #outTemp = np.max(TempDataArray)
             outTemp = TempDataArray[TempDataArray >= TEMPERATURE_TH].max()
 
+    #print("rect[2]=%i" % rect[2])
     #print("outTemp=%f" % outTemp)
     return outTemp

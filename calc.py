@@ -21,13 +21,14 @@ END_POS = (440, 420)
 # ステータス文字垂直位置オフセット（背景の下端から離す距離）
 if setting.mode == 0:
     # 実機
-    STATUS_TEXT_OFFSET_Y = 8
+    STATUS_TEXT_OFFSET_Y = 4
 else:
     # Sim
     STATUS_TEXT_OFFSET_Y = 8
 
 # ステータステキスト表示Y座標
-STATUS_TEXT_POS_Y = 44 - STATUS_TEXT_OFFSET_Y
+#STATUS_TEXT_POS_Y = 44 - STATUS_TEXT_OFFSET_Y
+STATUS_TEXT_POS_Y = 20 - STATUS_TEXT_OFFSET_Y
 # OK/NG 時のステータステキスト表示座標
 STATUS_TEXT_OK_NG_POS = (236, STATUS_TEXT_POS_Y)
 
@@ -59,8 +60,10 @@ TEMP_POS = (TEMP_START_POS[0]+2, TEMP_END_POS[1] - TEMP_TEXT_OFFSET_Y)
 _judge_temp = setting.judge_temp
 
 #顔検出パラメータ
-SCALE_FACTOR = 1.1
-MIN_NIGHBORS = 3
+#SCALE_FACTOR = 1.1
+SCALE_FACTOR = 1.21
+#MIN_NIGHBORS = 3
+MIN_NIGHBORS = 6
 MIN_SIZE = (40,40)
 
 # 体温データの平均回数
@@ -69,8 +72,8 @@ AVERAGE_COUNT = 4
 #顔検出機能ON
 #if setting.face_detect:
 # 顔検出のための学習元データを読み込む
-face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
-#face_cascade = cv2.CascadeClassifier('cascade.xml')
+#face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
+face_cascade = cv2.CascadeClassifier('cascade2.xml')
 
 
 # ------------------------------
@@ -80,13 +83,13 @@ face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
 # ------------------------------
 def face_select(face_rect):
     num = len(face_rect)
-    minPos = 560
+    minPos = 420
     index = 0
     for i in range(num):
         cx = face_rect[i][0] + face_rect[i][2] / 2
         cy = face_rect[i][1] + face_rect[i][3] / 2
-        if minPos > abs(320 - cx) + abs(240 - cy):
-            minPos = abs(320 - cx) + abs(240 - cy)
+        if minPos > abs(240 - cx) + abs(180 - cy):
+            minPos = abs(240 - cx) + abs(180 - cy)
             index = i
 
     return face_rect[index]
@@ -98,15 +101,16 @@ def face_select(face_rect):
 # ------------------------------
 def check_face_pos(face_rect):
     # 
-    startx = face_rect[0] + 2
-    starty = face_rect[1] + 2
-    endx = face_rect[0] + face_rect[2] - 2
-    endy = face_rect[1] + face_rect[3] - 2
+    startx = face_rect[0]
+    starty = face_rect[1]
+    endx = face_rect[0] + face_rect[2]
+    endy = face_rect[1] + face_rect[3]
 
-    if startx > pygame_util.SENSOR_RECT_FACE_ON[0][0] and starty > pygame_util.SENSOR_RECT_FACE_ON[0][1] \
-    and endx < pygame_util.SENSOR_RECT_FACE_ON[0][0] + pygame_util.SENSOR_RECT_FACE_ON[1][0] and endy < pygame_util.SENSOR_RECT_FACE_ON[0][1] + pygame_util.SENSOR_RECT_FACE_ON[1][1]:
+    #if startx > 0 and starty > 0 and endx < 480 and endy < 360:
+    if startx > 5 and starty > 5 and endx < 475 and endy < 355:
         return True
     return False
+
 
 # ------------------------------
 # 顔サイズチェック
@@ -116,9 +120,11 @@ def check_face_pos(face_rect):
 # ------------------------------
 def check_face_size(rect, sensordata):
   if rect[2] < 70 or rect[3] < 70:
-    bodyTemp = GetBodyTempData.getTempDataFaceDetOn(sensordata, False, None) # センサ温度の補正
+#    bodyTemp = GetBodyTempData.getTempDataFaceDetOn(sensordata, False, None) # センサ温度の補正
+    bodyTemp = GetBodyTempData.getTempDataFaceDetOn(sensordata, False, rect) # センサ温度の補正
   elif rect[2] > 500 or rect[3] > 500:
-    bodyTemp = GetBodyTempData.getTempDataFaceDetOn(sensordata, False, None) # センサ温度の補正
+#    bodyTemp = GetBodyTempData.getTempDataFaceDetOn(sensordata, False, None) # センサ温度の補正
+    bodyTemp = GetBodyTempData.getTempDataFaceDetOn(sensordata, False, rect) # センサ温度の補正
   else:
     bodyTemp = GetBodyTempData.getTempDataFaceDetOn(sensordata, True, rect) # 体温取得 ＆ センサ温度の補正
 

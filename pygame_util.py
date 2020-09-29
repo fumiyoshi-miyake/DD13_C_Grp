@@ -38,7 +38,8 @@ else:
     #END_POS = (340, 370)
     END_POS = (470, 310)
     #SENSOR_RECT_FACE_ON = ((60, 70), (540,430))
-    SENSOR_RECT_FACE_ON = ((70, 60), (550,420))
+    #SENSOR_RECT_FACE_ON = ((70, 60), (550,420))
+    SENSOR_RECT_FACE_ON = ((80, 40), (560,400)) #切り抜き画像の描画開始位置
     
 #SENSOR_RECT = (START_POS[0], START_POS[1], END_POS[0], END_POS[1])
 SENSOR_RECT = (START_POS, (END_POS[0]-START_POS[0], END_POS[1]-START_POS[1]))
@@ -383,8 +384,10 @@ def out_disp(img, colorbar_img, status_text, status_pos, bg_color, body_temp, se
 
     # 顔枠表示 顔検出時
     if face_rect[2] != 0:
-        face_rect[0] += SENSOR_RECT_FACE_ON[0][0]
-        face_rect[1] += SENSOR_RECT_FACE_ON[0][1]
+        #face_rect[0] += SENSOR_RECT_FACE_ON[0][0]
+        #face_rect[1] += SENSOR_RECT_FACE_ON[0][1]
+        face_rect[0] += 80
+        face_rect[1] += 40
         pygame.draw.rect(_screen_pygame, bg_color, face_rect, 2)  # 枠線
 
     # ステータス表示
