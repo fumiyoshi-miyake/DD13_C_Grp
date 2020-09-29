@@ -164,8 +164,8 @@ def set_param(face_detect, size, pos, temp_max, temp_min):
                         setting.comp_ofst_x+_color_bar_width, setting.comp_ofst_y+18)
     elif size == 'ALL':
         _thermo_size = Size.ALL
-        set_thermo_size(_disp_width, _disp_height)
-        set_thermo_img_pos(0, 0, 0, 0)
+        set_thermo_size(480, 360)
+        set_thermo_img_pos(60, 70, 80, 70)
     else:
         _thermo_size = Size.HIDE
         set_thermo_size(0, 0)
@@ -472,15 +472,16 @@ def set_thermo_size(width, height):
 
 
 # ------------------------------
+# カラーバー＆サーモグラフ画像位置設定
 # ------------------------------
 def set_thermo_img_pos(colbar_x, colbar_y, thermo_x, thermo_y):
     global _colorbar_pos_y, _colorbar_pos_x
     global _thermogrf_pos_y, _thermogrf_pos_x
 
-    # -10:少しだけ上に
-    _colorbar_pos_y = colbar_y -10
+    offset_y = 30
+    _colorbar_pos_y = colbar_y - offset_y
     _colorbar_pos_x = colbar_x
-    _thermogrf_pos_y = thermo_y -10
+    _thermogrf_pos_y = thermo_y - offset_y
     _thermogrf_pos_x = thermo_x
 
     return
