@@ -474,10 +474,10 @@ def set_thermo_img_pos(colbar_x, colbar_y, thermo_x, thermo_y):
     global _colorbar_pos_y, _colorbar_pos_x
     global _thermogrf_pos_y, _thermogrf_pos_x
 
-    # 解像度が480→375になったので-105, setting.pyで既に-5してるので-100
-    _colorbar_pos_y = colbar_y -100
+    # -10:少しだけ上に
+    _colorbar_pos_y = colbar_y -10
     _colorbar_pos_x = colbar_x
-    _thermogrf_pos_y = thermo_y -100
+    _thermogrf_pos_y = thermo_y -10
     _thermogrf_pos_x = thermo_x
 
     return
