@@ -80,13 +80,13 @@ face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
 # ------------------------------
 def face_select(face_rect):
     num = len(face_rect)
-    minPos = 560
+    minPos = 420
     index = 0
     for i in range(num):
         cx = face_rect[i][0] + face_rect[i][2] / 2
         cy = face_rect[i][1] + face_rect[i][3] / 2
-        if minPos > abs(320 - cx) + abs(240 - cy):
-            minPos = abs(320 - cx) + abs(240 - cy)
+        if minPos > abs(240 - cx) + abs(180 - cy):
+            minPos = abs(240 - cx) + abs(180 - cy)
             index = i
 
     return face_rect[index]
@@ -98,13 +98,12 @@ def face_select(face_rect):
 # ------------------------------
 def check_face_pos(face_rect):
     # 
-    startx = face_rect[0] + 2
-    starty = face_rect[1] + 2
-    endx = face_rect[0] + face_rect[2] - 2
-    endy = face_rect[1] + face_rect[3] - 2
+    startx = face_rect[0]
+    starty = face_rect[1]
+    endx = face_rect[0] + face_rect[2]
+    endy = face_rect[1] + face_rect[3]
 
-    if startx > pygame_util.SENSOR_RECT_FACE_ON[0][0] and starty > pygame_util.SENSOR_RECT_FACE_ON[0][1] \
-    and endx < pygame_util.SENSOR_RECT_FACE_ON[0][0] + pygame_util.SENSOR_RECT_FACE_ON[1][0] and endy < pygame_util.SENSOR_RECT_FACE_ON[0][1] + pygame_util.SENSOR_RECT_FACE_ON[1][1]:
+    if startx > 0 and starty > 0 and endx < 480 and endy < 360:
         return True
     return False
 
