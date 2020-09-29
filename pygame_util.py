@@ -277,14 +277,13 @@ def draw_text_rect(text, text_pos, rect, rect_color):
 def open_disp():
     #解像度取得
     #width_pixel, height_pixel = getResolution()
-    width_pixel, height_pixel = ('640', '480')  # ★仮★
-    #width_pixel, height_pixel = ('480', '360')  # ★仮★
+    width_pixel, height_pixel = ('640', '480')
 
     # ディスプレイ表示サイズ設定
     global _disp_width
     global _disp_height
     _disp_width  = int(width_pixel)
-    _disp_height = int(height_pixel)  # タイトルバー分の調整が必要かも★
+    _disp_height = int(height_pixel)
 
     pygame.init()
     global _screen_pygame
@@ -295,7 +294,6 @@ def open_disp():
     # status文字列 背景範囲＆フォント作成
     global _status_text
     global _status_font
-    #_status_font = pygame.font.SysFont(FONT_JP_B, 30)
     _status_font = pygame.font.SysFont(FONT_JP, 30)
 
     # センサー範囲
@@ -308,7 +306,6 @@ def open_disp():
     global _body_temp_font
     _body_temp_rect = pygame.Rect(TEMP_RECT)
     _body_temp_font = pygame.font.SysFont(None, 50)
-    #_body_temp_font = pygame.font.SysFont(FONT_JP_B, 30)
 
     # マウス非表示化
     pygame.mouse.set_visible(False)
@@ -352,8 +349,12 @@ def out_disp(img, colorbar_img, status_text, status_pos, bg_color, body_temp, se
             # 新センサ 80x60
             thermo_img = make_thermograph(sensor_data, 80, 60, _thermo_grf_width, _thermo_grf_height)
 
-    # 画像表示
-    _screen_pygame.blit(img, (80, 40))
+    # カメラ画像表示
+    # サーモグラフィ全画面表示時はカメラ画像は表示しない    
+    if _thermo_size != Size.ALL:
+        _screen_pygame.blit(img, (80, 40))
+
+    # サーモグラフィ画像表示    
     global _color_bar_width, _color_bar_height
     global _colorbar_pos_y, _colorbar_pos_x
     global _thermogrf_pos_x, _thermogrf_pos_y
