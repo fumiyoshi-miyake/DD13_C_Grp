@@ -68,11 +68,17 @@ def open_win():
                         font=('', FONT_SIZE_BTN), command=partial(close_win, dlg)) 
 
     # 配置
-    button_size.place(x=70, y=100)
-    #button_pos.place(x=240, y=100)
-    button_temp.place(x=410, y=100)
+    #col = [70, 240, 410]  # ボタンx座標
+    col = [150, 330]  # ボタンx座標
+    row = 100  #ボタンy座標
+    #button_size.place(x=col[0], y=row)
+    #button_pos.place(x=col[1], y=row)
+    #button_temp.place(x=col[2], y=row)
+
+    button_size.place(x=col[0], y=row)
+    button_temp.place(x=col[1], y=row)
     
-    button_back.place(x=440, y=300)
+    button_back.place(x=400, y=300)
 
     return
 
