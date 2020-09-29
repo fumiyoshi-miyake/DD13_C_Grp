@@ -37,7 +37,8 @@ else:
     START_POS = (170, 70)
     #END_POS = (340, 370)
     END_POS = (470, 310)
-    SENSOR_RECT_FACE_ON = ((60, 70), (540,430))
+    #SENSOR_RECT_FACE_ON = ((60, 70), (540,430))
+    SENSOR_RECT_FACE_ON = ((70, 60), (550,420))
     
 #SENSOR_RECT = (START_POS[0], START_POS[1], END_POS[0], END_POS[1])
 SENSOR_RECT = (START_POS, (END_POS[0]-START_POS[0], END_POS[1]-START_POS[1]))
@@ -46,7 +47,8 @@ SENSOR_RECT = (START_POS, (END_POS[0]-START_POS[0], END_POS[1]-START_POS[1]))
 #STATUS_START_POS = (72, 39)
 #STATUS_END_POS   = (564, 79)
 #STATUS_START_POS = (72, START_POS[1]-42)
-STATUS_START_POS = (72, 80-42)
+#STATUS_START_POS = (72, 80-42)
+STATUS_START_POS = (72, 20)
 #STATUS_END_POS   = (564, START_POS[1]-2)
 STATUS_RECT = (STATUS_START_POS, (492, 40))
 
@@ -343,7 +345,7 @@ def out_disp(img, colorbar_img, status_text, status_pos, bg_color, body_temp, se
     # カメラ画像拡大
     #global _disp_width
     #global _disp_height
-    img = pygame.transform.scale(img, (_disp_width, _disp_height))
+    #img = pygame.transform.scale(img, (_disp_width, _disp_height))
 
     # サーモグラフィ画像作成,
     global _thermo_grf_width, _thermo_grf_height
@@ -362,7 +364,8 @@ def out_disp(img, colorbar_img, status_text, status_pos, bg_color, body_temp, se
 
     # 画像表示
     #_screen_pygame.blit(img, (0, 0))
-    _screen_pygame.blit(img, (80, 40), (70, 60, 480, 360))
+    #_screen_pygame.blit(img, (80, 40), (70, 60, 480, 360))
+    _screen_pygame.blit(img, (80, 40))
     global _color_bar_width, _color_bar_height
     global _colorbar_pos_y, _colorbar_pos_x
     global _thermogrf_pos_x, _thermogrf_pos_y
@@ -372,12 +375,11 @@ def out_disp(img, colorbar_img, status_text, status_pos, bg_color, body_temp, se
         _screen_pygame.blit(thermo_img, (_thermogrf_pos_x, _thermogrf_pos_y))
 
     # センサ範囲矩形描画
-    #if _face_detect == 0:
-    #    pygame.draw.rect(_screen_pygame, COLOR_SENSOR, SENSOR_RECT, 2)  # 枠線
+    if _face_detect == 0:
+        pygame.draw.rect(_screen_pygame, COLOR_SENSOR, SENSOR_RECT, 2)  # 枠線
     #else:
     #    if setting.sensor == 1: 
     #        pygame.draw.rect(_screen_pygame, COLOR_SENSOR, SENSOR_RECT_FACE_ON, 2)  # 枠線
-    pygame.draw.rect(_screen_pygame, COLOR_SENSOR, SENSOR_RECT, 2)  # 枠線
 
     # 顔枠表示 顔検出時
     if face_rect[2] != 0:
@@ -396,7 +398,8 @@ def out_disp(img, colorbar_img, status_text, status_pos, bg_color, body_temp, se
             draw_text_rect(_body_temp_text, (TEMP_START_POS[0]+5,TEMP_START_POS[1]+2), _body_temp_rect, bg_color)
         else:
             # 右端チェック はみ出す場合は左側に表示 +100はテキストサイズ＋オフセット
-            if face_rect[0]+face_rect[2] + 100 > 640:
+            #if face_rect[0]+face_rect[2] + 100 > 640:
+            if face_rect[0]+face_rect[2] + 100 > SENSOR_RECT_FACE_ON[1][0]:
                 TempStartPos = (face_rect[0]-76, face_rect[1]+face_rect[3] - 40)
             else:
                 TempStartPos = (face_rect[0]+face_rect[2], face_rect[1]+face_rect[3] - 40)
